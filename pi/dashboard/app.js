@@ -1,33 +1,37 @@
 // FocusBoard Dashboard - app.js
-// Polls state.json from disk, renders dashboard, handles offline/night mode
+// Polls state.json, renders dashboard with per-block icons/colors/details
 
 (function () {
     'use strict';
 
-    const POLL_INTERVAL = 10000; // 10s - check for new state.json
-    const CLOCK_INTERVAL = 1000; // 1s - update clock
-    const OFFLINE_THRESHOLD = 5 * 60 * 1000; // 5 min - show offline banner
-    const NIGHT_HOUR = 21; // 9 PM
+    const POLL_INTERVAL = 10000;
+    const CLOCK_INTERVAL = 1000;
+    const OFFLINE_THRESHOLD = 5 * 60 * 1000;
+    const NIGHT_HOUR = 21;
 
     let lastState = null;
     let lastGeneratedAt = null;
 
     // ─── DOM refs ──────────────────────────────────────────────────────
 
-    const $clock = document.getElementById('clock');
-    const $dateLabel = document.getElementById('date-label');
-    const $offlineBanner = document.getElementById('offline-banner');
-    const $offlineTime = document.getElementById('offline-time');
-    const $currentBlock = document.getElementById('current-block');
-    const $currentBlockName = document.getElementById('current-block-name');
-    const $currentTask = document.getElementById('current-task');
-    const $currentFile = document.getElementById('current-file');
-    const $currentBadge = document.getElementById('current-badge');
-    const $scheduleList = document.getElementById('schedule-list');
-    const $keystonesBar = document.getElementById('keystones-bar');
-    const $tomorrowBar = document.getElementById('tomorrow-bar');
-    const $syncDot = document.getElementById('sync-dot');
-    const $syncText = document.getElementById('sync-text');
+    const $ = (id) => document.getElementById(id);
+    const $clock = $('clock');
+    const $dateLabel = $('date-label');
+    const $offlineBanner = $('offline-banner');
+    const $offlineTime = $('offline-time');
+    const $currentBlock = $('current-block');
+    const $currentIcon = $('current-icon');
+    const $currentBlockName = $('current-block-name');
+    const $currentSublabel = $('current-block-sublabel');
+    const $currentTask = $('current-task');
+    const $currentFile = $('current-file');
+    const $currentBadge = $('current-badge');
+    const $currentDetails = $('current-details');
+    const $scheduleList = $('schedule-list');
+    const $keystonesBar = $('keystones-bar');
+    const $tomorrowBar = $('tomorrow-bar');
+    const $syncDot = $('sync-dot');
+    const $syncText = $('sync-text');
 
     // ─── Clock ─────────────────────────────────────────────────────────
 
@@ -39,7 +43,6 @@
         const h12 = hours % 12 || 12;
         $clock.textContent = `${h12}:${minutes} ${ampm}`;
 
-        // Night mode
         if (hours >= NIGHT_HOUR || hours < 5) {
             document.body.classList.add('night-mode');
         } else {
@@ -51,28 +54,22 @@
 
     async function fetchState() {
         try {
-            // Cache-bust with timestamp
             const resp = await fetch('state.json?t=' + Date.now());
             if (!resp.ok) throw new Error('fetch failed');
             const state = await resp.json();
-
             lastState = state;
             lastGeneratedAt = new Date(state.generated_at);
-
             render(state);
             updateSyncStatus(true);
         } catch (e) {
-            // state.json missing or corrupt - show offline if stale
             updateSyncStatus(false);
-            if (lastState) {
-                render(lastState);
-            }
+            if (lastState) render(lastState);
         }
     }
 
     // ─── Sync status ───────────────────────────────────────────────────
 
-    function updateSyncStatus(fetchOk) {
+    function updateSyncStatus() {
         const now = new Date();
 
         if (!lastGeneratedAt) {
@@ -86,14 +83,12 @@
         const minutes = Math.floor(age / 60000);
 
         if (age < OFFLINE_THRESHOLD) {
-            // Online
             $syncDot.className = 'sync-dot';
             $syncText.textContent = minutes < 1
                 ? 'Synced just now'
                 : `Synced ${minutes} min ago`;
             $offlineBanner.classList.add('hidden');
         } else {
-            // Offline
             $syncDot.className = 'sync-dot offline';
             $syncText.textContent = `Last sync ${minutes} min ago`;
             $offlineBanner.classList.remove('hidden');
@@ -111,14 +106,16 @@
     // ─── Render ────────────────────────────────────────────────────────
 
     function render(state) {
-        // Date label
         $dateLabel.textContent = state.day_label || '';
 
         const allDone = state.meta && state.meta.all_done;
         const noSchedule = state.meta && state.meta.no_schedule;
         const isNight = new Date().getHours() >= NIGHT_HOUR || new Date().getHours() < 5;
 
-        // Current block hero
+        // Remove old overlay
+        const oldOverlay = $currentBlock.querySelector('.night-overlay');
+        if (oldOverlay) oldOverlay.remove();
+
         if (isNight || allDone) {
             renderNightOrComplete(state, allDone);
         } else if (noSchedule) {
@@ -127,101 +124,116 @@
             renderCurrentBlock(state);
         }
 
-        // Schedule
         renderSchedule(state.blocks || []);
-
-        // Keystones
         renderKeystones(state.keystones || []);
-
-        // Tomorrow
         renderTomorrow(state.tomorrow_focus);
+    }
 
-        // Sync
-        updateSyncStatus(true);
+    function setBlockColor(color) {
+        document.documentElement.style.setProperty('--block-color', color || '#3498db');
     }
 
     function renderCurrentBlock(state) {
         const now = state.now || {};
-        const currentType = getBlockType(now.block, state.blocks);
+        const color = now.color || '#3498db';
 
-        $currentBlock.className = `current-block type-${currentType}`;
-        $currentBlockName.textContent = now.block || '—';
+        setBlockColor(color);
+        $currentBlock.className = 'current-block';
+
+        // Icon
+        $currentIcon.textContent = now.icon || '';
+        $currentIcon.style.display = now.icon ? '' : 'none';
+
+        // Block name
+        $currentBlockName.textContent = now.block || '';
+
+        // Sublabel (e.g., "CREATION" label distinct from block name like "Creation")
+        if (now.label && now.label !== now.block.toUpperCase()) {
+            $currentSublabel.textContent = now.label;
+            $currentSublabel.style.display = '';
+        } else {
+            $currentSublabel.style.display = 'none';
+        }
+
+        // Task
         $currentTask.textContent = now.task || '';
 
         // File + source
         if (now.file) {
-            const source = now.source ? now.source : '';
-            $currentFile.textContent = now.file + source;
+            $currentFile.textContent = now.file + (now.source || '');
         } else {
             $currentFile.textContent = '';
         }
 
-        // Badge for required/keystone blocks
-        const currentBlock = (state.blocks || []).find(b => b.is_current);
-        if (currentBlock && currentBlock.required) {
+        // Badge
+        const currentBlockData = (state.blocks || []).find(b => b.is_current);
+        if (currentBlockData && currentBlockData.required) {
             $currentBadge.textContent = '\u25C6 Keystone Trigger';
         } else {
             $currentBadge.textContent = '';
         }
+
+        // Details
+        const details = now.details || [];
+        $currentDetails.innerHTML = '';
+        for (const d of details) {
+            const div = document.createElement('div');
+            div.className = 'detail-item';
+            div.textContent = d;
+            $currentDetails.appendChild(div);
+        }
+
+        // Show divider
+        const divider = $currentBlock.querySelector('.current-block-divider');
+        if (divider) divider.style.display = '';
     }
 
     function renderNightOrComplete(state, allDone) {
         const tf = state.tomorrow_focus || {};
 
-        $currentBlock.className = 'current-block day-complete';
+        setBlockColor(allDone ? '#2ecc71' : '#555');
+        $currentBlock.className = allDone ? 'current-block day-complete' : 'current-block';
 
-        if (allDone) {
-            $currentBlockName.textContent = 'Day Complete';
-        } else {
-            $currentBlockName.textContent = '';
-        }
+        $currentIcon.textContent = allDone ? '\u2714' : '\u263E';
+        $currentIcon.style.display = '';
+        $currentBlockName.textContent = allDone ? 'Day Complete' : '';
+        $currentSublabel.style.display = 'none';
+        $currentTask.textContent = '';
+        $currentFile.textContent = '';
+        $currentBadge.textContent = '';
+        $currentDetails.innerHTML = '';
 
-        // Show tomorrow focus + quote in hero area
+        const divider = $currentBlock.querySelector('.current-block-divider');
+        if (divider) divider.style.display = 'none';
+
         const overlay = document.createElement('div');
         overlay.className = 'night-overlay';
 
         if (tf.task) {
             overlay.innerHTML = `
                 <div class="night-tomorrow-label">Tomorrow</div>
-                <div class="night-tomorrow-task">${escapeHtml(tf.task)}</div>
-                ${tf.action ? `<div class="night-tomorrow-action">${escapeHtml(tf.action)}</div>` : ''}
-                ${tf.one_thing ? `<div class="night-quote">"${escapeHtml(tf.one_thing)}"</div>` : ''}
+                <div class="night-tomorrow-task">${esc(tf.task)}</div>
+                ${tf.action ? `<div class="night-tomorrow-action">${esc(tf.action)}</div>` : ''}
+                ${tf.one_thing ? `<div class="night-quote">"${esc(tf.one_thing)}"</div>` : ''}
             `;
         } else {
-            overlay.innerHTML = `<div class="night-quote">"${escapeHtml(state.quote || '')}"</div>`;
-        }
-
-        // Clear and re-render
-        $currentBlockName.textContent = allDone ? 'Day Complete' : '';
-        $currentTask.textContent = '';
-        $currentFile.textContent = '';
-        $currentBadge.textContent = '';
-
-        // Remove old overlay
-        const old = $currentBlock.querySelector('.night-overlay');
-        if (old) old.remove();
-
-        // Clear the divider when showing overlay
-        const divider = $currentBlock.querySelector('.current-block-divider');
-        if (!allDone) {
-            if (divider) divider.style.display = 'none';
-        } else {
-            if (divider) divider.style.display = '';
+            overlay.innerHTML = `<div class="night-quote">"${esc(state.quote || '')}"</div>`;
         }
 
         $currentBlock.appendChild(overlay);
     }
 
     function renderWaiting(state) {
+        setBlockColor('#555');
         $currentBlock.className = 'current-block';
+        $currentIcon.textContent = '\u25CC';
+        $currentIcon.style.display = '';
         $currentBlockName.textContent = 'Waiting';
+        $currentSublabel.style.display = 'none';
         $currentTask.textContent = 'Schedule not generated yet';
         $currentFile.textContent = '';
         $currentBadge.textContent = '';
-
-        // Remove overlay if present
-        const old = $currentBlock.querySelector('.night-overlay');
-        if (old) old.remove();
+        $currentDetails.innerHTML = '';
     }
 
     function renderSchedule(blocks) {
@@ -229,27 +241,29 @@
 
         for (const b of blocks) {
             const div = document.createElement('div');
+            const color = b.color || '#888';
 
             let statusClass = 'pending';
-            let icon = '\u2003'; // em space (blank)
+            let icon = '';
             if (b.done) {
                 statusClass = 'done';
-                icon = '\u2705'; // green check
+                icon = '\u2713';
             } else if (b.is_current) {
                 statusClass = 'current';
-                icon = '\u25B6'; // play triangle
+                icon = '\u25B6';
             }
 
             div.className = `schedule-item ${statusClass}`;
 
             const taskText = b.done
-                ? `<s>${escapeHtml(b.task)}</s>`
-                : escapeHtml(b.task);
+                ? `<s>${esc(b.task)}</s>`
+                : esc(b.task);
 
             div.innerHTML = `
+                <span class="s-dot" style="background:${b.done ? '#555' : color}"></span>
                 <span class="s-icon">${icon}</span>
-                <span class="s-time">${escapeHtml(b.time)}</span>
-                <span class="s-block">${escapeHtml(b.block)}</span>
+                <span class="s-time">${esc(b.time)}</span>
+                <span class="s-block" style="${b.is_current ? 'color:' + color : ''}">${esc(b.block)}</span>
                 <span class="s-task">${taskText}</span>
             `;
 
@@ -267,10 +281,9 @@
         for (const ks of keystones) {
             const cls = ks.done ? 'ks-done' : 'ks-pending';
             const critical = ks.critical ? ' ks-critical' : '';
-            const symbol = ks.done ? '\u25C6' : '\u25C7'; // filled/empty diamond
-            html += `<span class="${cls}${critical}" title="${escapeHtml(ks.name)}">${symbol}</span>`;
+            const symbol = ks.done ? '\u25C6' : '\u25C7';
+            html += `<span class="${cls}${critical}" title="${esc(ks.name)}">${symbol}</span>`;
         }
-
         $keystonesBar.innerHTML = html;
     }
 
@@ -279,39 +292,24 @@
             $tomorrowBar.innerHTML = '<span class="tm-label">Tomorrow:</span> Not planned yet';
             return;
         }
-
-        // Truncate long task names
         let task = tf.task;
-        if (task.length > 40) {
-            task = task.substring(0, 37) + '...';
-        }
-
+        if (task.length > 35) task = task.substring(0, 32) + '...';
         const action = tf.action ? `${tf.action}: ` : '';
-        $tomorrowBar.innerHTML = `<span class="tm-label">Tomorrow:</span> ${escapeHtml(action)}${escapeHtml(task)}`;
+        $tomorrowBar.innerHTML = `<span class="tm-label">Tomorrow:</span> ${esc(action)}${esc(task)}`;
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────
 
-    function getBlockType(blockName, blocks) {
-        if (!blocks) return 'work';
-        const block = blocks.find(b => b.block === blockName);
-        return block ? block.type : 'work';
-    }
-
-    function escapeHtml(str) {
+    function esc(str) {
         if (!str) return '';
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     // ─── Init ──────────────────────────────────────────────────────────
 
     updateClock();
     setInterval(updateClock, CLOCK_INTERVAL);
-
     fetchState();
     setInterval(fetchState, POLL_INTERVAL);
 

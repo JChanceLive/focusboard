@@ -7,8 +7,8 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/bin/bash</string>
-        <string>/Users/josiahlachance/Documents/Projects/Claude/terminal/focusboard/mac/generate-state.sh</string>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>/Users/josiahlachance/Documents/Projects/Claude/terminal/focusboard/mac/sync_runner.py</string>
     </array>
 
     <key>StartInterval</key>
@@ -26,7 +26,9 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin</string>
+        <key>HOME</key>
+        <string>/Users/josiahlachance</string>
     </dict>
 </dict>
 </plist>

@@ -4,7 +4,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PI_HOST="jopi@focusboard.local"
+PI_HOST="${FOCUSBOARD_HOST:-jopi@10.0.0.58}"
 PI_BASE="/home/jopi/focusboard"
 
 echo "Deploying FocusBoard dashboard to Pi..."

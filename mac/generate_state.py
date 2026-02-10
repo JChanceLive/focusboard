@@ -69,6 +69,64 @@ KEYSTONE_BLOCKS = {
 # SOP file indicators
 SOP_PREFIXES = ("SOP-",)
 
+# Per-block visual identity: icon (unicode), color (hex), label
+BLOCK_VISUALS = {
+    "Morning Foundation": {"icon": "\u2600", "color": "#f0a030", "label": "FOUNDATION"},  # ☀
+    "Creation":          {"icon": "\u2726", "color": "#e84393", "label": "CREATION"},      # ✦
+    "Creation Stack":    {"icon": "\u2726", "color": "#e84393", "label": "CREATION"},      # ✦
+    "Breakfast":         {"icon": "\u2615", "color": "#a0a0a0", "label": "BREAKFAST"},     # ☕
+    "Workout":           {"icon": "\u26A1", "color": "#00e676", "label": "POWER HOUR"},    # ⚡
+    "Power Hour":        {"icon": "\u26A1", "color": "#00e676", "label": "POWER HOUR"},    # ⚡
+    "DEV-1":             {"icon": "\u25C8", "color": "#00bcd4", "label": "DEVELOP"},        # ◈
+    "DEV-2":             {"icon": "\u25C8", "color": "#00bcd4", "label": "DEVELOP"},        # ◈
+    "DEV-3":             {"icon": "\u25C8", "color": "#00bcd4", "label": "DEVELOP"},        # ◈
+    "Clean Mama":        {"icon": "\u2728", "color": "#81c784", "label": "CLEAN MAMA"},    # ✨
+    "Midday Reset":      {"icon": "\u25CE", "color": "#81c784", "label": "RESET"},          # ◎
+    "EXEC-1":            {"icon": "\u25B8", "color": "#ff9800", "label": "EXECUTE"},        # ▸
+    "EXEC-2":            {"icon": "\u25B8", "color": "#ff9800", "label": "EXECUTE"},        # ▸
+    "EXEC-3":            {"icon": "\u25B8", "color": "#ff9800", "label": "EXECUTE"},        # ▸
+    "EXEC-4":            {"icon": "\u25B8", "color": "#ff9800", "label": "EXECUTE"},        # ▸
+    "BACKLOG":           {"icon": "\u25A3", "color": "#78909c", "label": "BACKLOG"},        # ▣
+    "Research":          {"icon": "\u25C9", "color": "#ab47bc", "label": "RESEARCH"},       # ◉
+    "LAB-1":             {"icon": "\u2B22", "color": "#7c4dff", "label": "NIGHT LAB"},      # ⬢
+    "LAB-2":             {"icon": "\u2B22", "color": "#7c4dff", "label": "NIGHT LAB"},      # ⬢
+    "LAB-3":             {"icon": "\u2B22", "color": "#7c4dff", "label": "NIGHT LAB"},      # ⬢
+    "PM Reflection":     {"icon": "\u25D0", "color": "#78909c", "label": "REFLECT"},        # ◐
+    "Family":            {"icon": "\u2665", "color": "#ce93d8", "label": "FAMILY"},         # ♥
+    "Family Time":       {"icon": "\u2665", "color": "#ce93d8", "label": "FAMILY"},         # ♥
+    "Night Restoration": {"icon": "\u263E", "color": "#5c6bc0", "label": "RESTORE"},        # ☾
+    "Wind-Down":         {"icon": "\u263E", "color": "#5c6bc0", "label": "RESTORE"},        # ☾
+}
+
+DEFAULT_VISUAL = {"icon": "\u25C6", "color": "#888888", "label": "FOCUS"}  # ◆
+
+# Stack details: what each block contains (from philosophy.md)
+BLOCK_DETAILS = {
+    "Morning Foundation": ["Stretch", "Read + Coffee", "Journal", "Breathwork + Vision"],
+    "Creation":           ["Walk (15 min)", "Pre-Record Skool (15 min)", "Deep Work (60 min)"],
+    "Creation Stack":     ["Walk (15 min)", "Pre-Record Skool (15 min)", "Deep Work (60 min)"],
+    "Workout":            ["Run w/ sprints", "Lift routine", "Cool-down", "Smoothie"],
+    "Power Hour":         ["Run w/ sprints", "Lift routine", "Cool-down", "Smoothie"],
+    "DEV-1":              ["JINTENT: Outreach, LinkedIn, client work"],
+    "DEV-2":              ["Communities: 5 min x 4 brands"],
+    "DEV-3":              ["Projects: Deep focus task"],
+    "Clean Mama":         ["Rotating chore (25 min)", "Transition (5 min)"],
+    "Midday Reset":       ["Lunch - mindful, no screens", "Class (optional)", "Nap ~1:30 PM", "Meditation"],
+    "EXEC-1":             ["Daily editing touchpoint"],
+    "EXEC-2":             ["Communities PM: second pass, Skool deep"],
+    "EXEC-3":             ["Pipeline work, admin"],
+    "EXEC-4":             ["Claude ecosystem improvements"],
+    "BACKLOG":            ["Pull ONE item from High Priority", "Work it, check off"],
+    "Research":           ["Watch Later: process 2-3 videos", "Extract golden nuggets"],
+    "LAB-1":              ["Watch Later content processing"],
+    "LAB-2":              ["Queue renders, exports"],
+    "LAB-3":              ["Tech Sprint: micro-tasks"],
+    "Family":             ["Transition (15 min)", "Dinner - present, no devices", "Connection time"],
+    "Family Time":        ["Transition (15 min)", "Dinner - present, no devices", "Connection time"],
+    "Night Restoration":  ["Gratitude journal", "Yoga Nidra / sleep transition", "Lights out 9 PM"],
+    "Wind-Down":          ["Gratitude journal", "Yoga Nidra / sleep transition", "Lights out 9 PM"],
+}
+
 
 # ─── Parsing ─────────────────────────────────────────────────────────────────
 
@@ -116,6 +174,7 @@ def parse_day_overview(content: str) -> list[dict]:
                 if file_ref in ("(no file)", "(browser)", "—", "-"):
                     file_ref = ""
 
+                visual = BLOCK_VISUALS.get(block_name, DEFAULT_VISUAL)
                 block = {
                     "time": time_val,
                     "block": block_name,
@@ -126,6 +185,10 @@ def parse_day_overview(content: str) -> list[dict]:
                     "is_current": False,
                     "type": get_block_type(block_name),
                     "required": is_required_block(block_name, file_ref),
+                    "icon": visual["icon"],
+                    "color": visual["color"],
+                    "label": visual["label"],
+                    "details": BLOCK_DETAILS.get(block_name, []),
                 }
                 blocks.append(block)
 
@@ -427,6 +490,11 @@ def generate_state() -> dict:
             "task": current_block["task"],
             "file": current_block["file"],
             "source": current_block["source"],
+            "icon": current_block["icon"],
+            "color": current_block["color"],
+            "label": current_block["label"],
+            "details": current_block["details"],
+            "type": current_block["type"],
         }
     elif blocks:
         # All done
@@ -435,6 +503,11 @@ def generate_state() -> dict:
             "task": "All blocks finished",
             "file": "",
             "source": "",
+            "icon": "\u2714",
+            "color": "#2ecc71",
+            "label": "COMPLETE",
+            "details": [],
+            "type": "health",
         }
     else:
         now_section = {
@@ -442,6 +515,11 @@ def generate_state() -> dict:
             "task": "Waiting for schedule",
             "file": "",
             "source": "",
+            "icon": "\u25CC",
+            "color": "#555555",
+            "label": "WAITING",
+            "details": [],
+            "type": "work",
         }
 
     # Parse keystones and match to block completion

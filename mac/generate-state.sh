@@ -8,7 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 STATE_DIR="$HOME/.claude/pi"
 STATE_FILE="$STATE_DIR/state.json"
-PI_HOST="jopi@focusboard.local"
+PI_HOST="${FOCUSBOARD_HOST:-jopi@10.0.0.58}"
 PI_DEST="/home/jopi/focusboard/dashboard/state.json"
 LOG_FILE="$STATE_DIR/sync.log"
 
