@@ -1,0 +1,15 @@
+[Unit]
+Description=FocusBoard Kiosk Dashboard
+After=graphical.target
+Wants=graphical.target
+
+[Service]
+User=jopi
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/jopi/.Xauthority
+ExecStart=/bin/bash /home/jopi/focusboard/scripts/chromium-kiosk.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target

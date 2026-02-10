@@ -1,0 +1,14 @@
+# State files (generated, not tracked)
+state.json
+*.log
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor
+.vscode/
+*.swp

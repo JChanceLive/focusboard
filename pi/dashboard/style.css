@@ -1,0 +1,369 @@
+/* FocusBoard Dashboard - Portrait 1080x1920 */
+
+:root {
+    /* Base colors */
+    --bg: #0d0d0d;
+    --bg-surface: #1a1a1a;
+    --bg-elevated: #242424;
+    --text-primary: #e8e8e8;
+    --text-secondary: #888;
+    --text-muted: #555;
+
+    /* Block type accents */
+    --accent-health: #2ecc71;
+    --accent-work: #3498db;
+    --accent-family: #9b59b6;
+    --accent-sacred: #f39c12;
+
+    /* Status */
+    --done: #2ecc71;
+    --current: #3498db;
+    --pending: #555;
+    --offline: #e74c3c;
+
+    /* Layout */
+    --header-height: 80px;
+    --footer-height: 60px;
+    --sync-height: 40px;
+    --schedule-height: 25%;
+    --side-padding: 40px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Night mode - applied via JS after 9 PM */
+body.night-mode {
+    filter: brightness(0.3);
+}
+
+/* ─── Offline Banner ─── */
+
+.offline-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: var(--offline);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    z-index: 100;
+}
+
+.offline-banner.hidden {
+    display: none;
+}
+
+/* ─── Header ─── */
+
+.header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--side-padding);
+    border-bottom: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.clock {
+    font-size: 36px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    color: var(--text-primary);
+}
+
+.date-label {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text-secondary);
+}
+
+/* ─── Current Block (Hero) ─── */
+
+.current-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px var(--side-padding);
+    min-height: 0;
+    position: relative;
+}
+
+/* Left accent border for block type */
+.current-block::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10%;
+    bottom: 10%;
+    width: 6px;
+    border-radius: 3px;
+    background: var(--accent-work);
+    transition: background 0.3s ease;
+}
+
+.current-block.type-health::before { background: var(--accent-health); }
+.current-block.type-work::before { background: var(--accent-work); }
+.current-block.type-family::before { background: var(--accent-family); }
+.current-block.type-sacred::before { background: var(--accent-sacred); }
+
+.current-block-name {
+    font-size: 72px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    text-align: center;
+    line-height: 1.1;
+}
+
+.current-block-divider {
+    width: 200px;
+    height: 3px;
+    background: var(--text-muted);
+    margin: 30px 0;
+    border-radius: 2px;
+}
+
+.current-task {
+    font-size: 42px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.3;
+    max-width: 900px;
+}
+
+.current-file {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text-muted);
+    margin-top: 20px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.current-badge {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-sacred);
+    margin-top: 12px;
+    letter-spacing: 1px;
+}
+
+/* Day Complete state */
+.current-block.day-complete .current-block-name {
+    color: var(--done);
+}
+
+/* ─── Schedule ─── */
+
+.schedule {
+    height: var(--schedule-height);
+    border-top: 1px solid var(--bg-elevated);
+    padding: 16px var(--side-padding);
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.schedule-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    font-size: 24px;
+    line-height: 1.5;
+    padding: 4px 0;
+}
+
+.schedule-item .s-icon {
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.schedule-item .s-time {
+    width: 70px;
+    color: var(--text-muted);
+    font-weight: 300;
+    flex-shrink: 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 20px;
+}
+
+.schedule-item .s-block {
+    width: 160px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.schedule-item .s-task {
+    color: var(--text-secondary);
+    font-weight: 300;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Done items */
+.schedule-item.done .s-icon { color: var(--done); }
+.schedule-item.done .s-block { color: var(--text-muted); text-decoration: line-through; }
+.schedule-item.done .s-task { color: var(--text-muted); text-decoration: line-through; }
+.schedule-item.done .s-time { color: var(--text-muted); }
+
+/* Current item */
+.schedule-item.current .s-icon { color: var(--current); }
+.schedule-item.current .s-block { color: var(--text-primary); }
+.schedule-item.current .s-task { color: var(--text-primary); }
+
+/* Pending items */
+.schedule-item.pending .s-icon { color: var(--pending); }
+.schedule-item.pending .s-block { color: var(--text-secondary); }
+
+/* ─── Footer ─── */
+
+.footer {
+    height: var(--footer-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--side-padding);
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.keystones-bar {
+    font-size: 24px;
+    letter-spacing: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.keystones-bar .ks-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-right: 8px;
+    letter-spacing: 1px;
+}
+
+.ks-done { color: var(--done); }
+.ks-pending { color: var(--text-muted); }
+.ks-critical { font-weight: bold; }
+
+.tomorrow-bar {
+    font-size: 20px;
+    color: var(--text-secondary);
+    font-weight: 300;
+}
+
+.tomorrow-bar .tm-label {
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+/* ─── Sync Status ─── */
+
+.sync-status {
+    height: var(--sync-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 16px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--done);
+}
+
+.sync-dot.offline {
+    background: var(--offline);
+}
+
+/* ─── Night Mode: Tomorrow + Quote overlay ─── */
+
+.night-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 80%;
+}
+
+.night-overlay .night-tomorrow-label {
+    font-size: 24px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.night-overlay .night-tomorrow-task {
+    font-size: 48px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin-bottom: 8px;
+}
+
+.night-overlay .night-tomorrow-action {
+    font-size: 28px;
+    color: var(--accent-sacred);
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 40px;
+}
+
+.night-overlay .night-quote {
+    font-size: 26px;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.4;
+}

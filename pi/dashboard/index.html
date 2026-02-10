@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0">
+    <title>FocusBoard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Offline Banner -->
+    <div id="offline-banner" class="offline-banner hidden">
+        MAC SYNC OFFLINE - LAST UPDATE <span id="offline-time"></span>
+    </div>
+
+    <!-- Clock + Date Header -->
+    <header id="header" class="header">
+        <span id="clock" class="clock"></span>
+        <span id="date-label" class="date-label"></span>
+    </header>
+
+    <!-- Current Block (Hero) -->
+    <section id="current-block" class="current-block">
+        <div id="current-block-name" class="current-block-name"></div>
+        <div class="current-block-divider"></div>
+        <div id="current-task" class="current-task"></div>
+        <div id="current-file" class="current-file"></div>
+        <div id="current-badge" class="current-badge"></div>
+    </section>
+
+    <!-- Schedule List -->
+    <section id="schedule" class="schedule">
+        <div class="schedule-title">SCHEDULE</div>
+        <div id="schedule-list" class="schedule-list"></div>
+    </section>
+
+    <!-- Footer: Keystones + Tomorrow -->
+    <footer id="footer" class="footer">
+        <div id="keystones-bar" class="keystones-bar"></div>
+        <div id="tomorrow-bar" class="tomorrow-bar"></div>
+    </footer>
+
+    <!-- Sync Status -->
+    <div id="sync-status" class="sync-status">
+        <span id="sync-dot" class="sync-dot"></span>
+        <span id="sync-text"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
