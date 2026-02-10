@@ -8,6 +8,7 @@
     const CLOCK_INTERVAL = 1000;
     const OFFLINE_THRESHOLD = 5 * 60 * 1000;
     const NIGHT_HOUR = 21;
+    const BG_ROTATE_INTERVAL = 30 * 60 * 1000; // rotate bg image every 30 min
 
     let lastState = null;
     let lastGeneratedAt = null;
@@ -26,6 +27,7 @@
     const $currentTask = $('current-task');
     const $currentFile = $('current-file');
     const $currentBadge = $('current-badge');
+    const $currentBehind = $('current-behind');
     const $currentDetails = $('current-details');
     const $scheduleList = $('schedule-list');
     const $keystonesBar = $('keystones-bar');
@@ -173,6 +175,20 @@
             $currentBadge.textContent = '';
         }
 
+        // Behind schedule indicator
+        var blocks = state.blocks || [];
+        var blockMinutes = parseBlockMinutes(blocks);
+        var currentMin = getCurrentMinutes();
+        var timePos = findTimePosition(blockMinutes, currentMin);
+        var currentIdx = blocks.findIndex(function(b) { return b.is_current; });
+
+        if (timePos > currentIdx && currentIdx >= 0) {
+            var skipped = timePos - currentIdx;
+            $currentBehind.textContent = '\u23F1 ' + skipped + ' block' + (skipped > 1 ? 's' : '') + ' behind schedule';
+        } else {
+            $currentBehind.textContent = '';
+        }
+
         // Details
         const details = now.details || [];
         $currentDetails.innerHTML = '';
@@ -201,6 +217,7 @@
         $currentTask.textContent = '';
         $currentFile.textContent = '';
         $currentBadge.textContent = '';
+        $currentBehind.textContent = '';
         $currentDetails.innerHTML = '';
 
         const divider = $currentBlock.querySelector('.current-block-divider');
@@ -233,41 +250,75 @@
         $currentTask.textContent = 'Schedule not generated yet';
         $currentFile.textContent = '';
         $currentBadge.textContent = '';
+        $currentBehind.textContent = '';
         $currentDetails.innerHTML = '';
     }
 
     function renderSchedule(blocks) {
         $scheduleList.innerHTML = '';
 
-        for (const b of blocks) {
-            const div = document.createElement('div');
-            const color = b.color || '#888';
+        var blockMinutes = parseBlockMinutes(blocks);
+        var currentMin = getCurrentMinutes();
+        var timePos = findTimePosition(blockMinutes, currentMin);
+        var currentIdx = blocks.findIndex(function(b) { return b.is_current; });
+        var markerInserted = false;
 
-            let statusClass = 'pending';
-            let icon = '';
+        for (var i = 0; i < blocks.length; i++) {
+            var b = blocks[i];
+
+            // Insert NOW marker before the block that time says we're in
+            // but only if it differs from the current (checked) position
+            if (!markerInserted && timePos >= 0 && i === timePos + 1 && timePos !== currentIdx) {
+                var marker = document.createElement('div');
+                marker.className = 'schedule-now-marker';
+                marker.innerHTML = '<span class="now-label">NOW</span><span class="now-line"></span>';
+                $scheduleList.appendChild(marker);
+                markerInserted = true;
+            }
+
+            var div = document.createElement('div');
+            var color = b.color || '#888';
+
+            var statusClass = 'pending';
+            var icon = '';
             if (b.done) {
                 statusClass = 'done';
                 icon = '\u2713';
             } else if (b.is_current) {
                 statusClass = 'current';
                 icon = '\u25B6';
+            } else if (!b.done && currentIdx >= 0 && i < currentIdx) {
+                // Unchecked block before the current one (shouldn't happen normally)
+                statusClass = 'skipped';
+                icon = '\u25CB'; // ○
+            } else if (!b.done && timePos >= 0 && i < timePos && i > currentIdx) {
+                // Unchecked, time has passed this block, between current and time position
+                statusClass = 'skipped';
+                icon = '\u25CB'; // ○
             }
 
-            div.className = `schedule-item ${statusClass}`;
+            div.className = 'schedule-item ' + statusClass;
 
-            const taskText = b.done
-                ? `<s>${esc(b.task)}</s>`
+            var taskText = b.done
+                ? '<s>' + esc(b.task) + '</s>'
                 : esc(b.task);
 
-            div.innerHTML = `
-                <span class="s-dot" style="background:${b.done ? '#555' : color}"></span>
-                <span class="s-icon">${icon}</span>
-                <span class="s-time">${esc(b.time)}</span>
-                <span class="s-block" style="${b.is_current ? 'color:' + color : ''}">${esc(b.block)}</span>
-                <span class="s-task">${taskText}</span>
-            `;
+            div.innerHTML =
+                '<span class="s-dot" style="background:' + (b.done ? '#555' : color) + '"></span>' +
+                '<span class="s-icon">' + icon + '</span>' +
+                '<span class="s-time">' + esc(b.time) + '</span>' +
+                '<span class="s-block" style="' + (b.is_current ? 'color:' + color : '') + '">' + esc(b.block) + '</span>' +
+                '<span class="s-task">' + taskText + '</span>';
 
             $scheduleList.appendChild(div);
+        }
+
+        // If NOW marker should be after the last block
+        if (!markerInserted && timePos >= blocks.length - 1 && timePos !== currentIdx) {
+            var marker = document.createElement('div');
+            marker.className = 'schedule-now-marker';
+            marker.innerHTML = '<span class="now-label">NOW</span><span class="now-line"></span>';
+            $scheduleList.appendChild(marker);
         }
     }
 
@@ -298,6 +349,42 @@
         $tomorrowBar.innerHTML = `<span class="tm-label">Tomorrow:</span> ${esc(action)}${esc(task)}`;
     }
 
+    // ─── Time Helpers (Hybrid Mode) ─────────────────────────────────
+
+    function parseBlockMinutes(blocks) {
+        // Convert block time strings to minutes-since-midnight
+        // Handles AM/PM ambiguity: if a time < previous, assume PM
+        var result = [];
+        var prev = 0;
+        for (var i = 0; i < blocks.length; i++) {
+            var parts = blocks[i].time.split(':');
+            var h = parseInt(parts[0], 10);
+            var m = parseInt(parts[1], 10);
+            var total = h * 60 + m;
+            if (total < prev && h < 12) {
+                total += 12 * 60; // PM
+            }
+            prev = total;
+            result.push(total);
+        }
+        return result;
+    }
+
+    function getCurrentMinutes() {
+        var now = new Date();
+        return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function findTimePosition(blockMinutes, currentMin) {
+        // Returns the index of the block the clock says we should be in
+        // (last block whose start time <= current time)
+        var pos = -1;
+        for (var i = 0; i < blockMinutes.length; i++) {
+            if (currentMin >= blockMinutes[i]) pos = i;
+        }
+        return pos;
+    }
+
     // ─── Helpers ───────────────────────────────────────────────────────
 
     function esc(str) {
@@ -306,11 +393,43 @@
                   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    // ─── Background Image ────────────────────────────────────────────
+
+    const $bgImage = $('bg-image');
+
+    function loadBackgroundImage() {
+        // loremflickr: free random images filtered by keyword, no API key
+        const url = 'https://loremflickr.com/1080/1920/nature,forest,mountain,ocean?lock=' + Math.floor(Math.random() * 10000);
+        const img = new Image();
+        img.onload = function () {
+            $bgImage.style.backgroundImage = 'url(' + img.src + ')';
+            $bgImage.classList.add('loaded');
+        };
+        img.onerror = function () {
+            // Fallback to picsum if loremflickr is down
+            const fallback = 'https://picsum.photos/1080/1920?t=' + Date.now();
+            const fb = new Image();
+            fb.onload = function () {
+                $bgImage.style.backgroundImage = 'url(' + fb.src + ')';
+                $bgImage.classList.add('loaded');
+            };
+            fb.src = fallback;
+        };
+        img.src = url;
+    }
+
+    function rotateBackgroundImage() {
+        $bgImage.classList.remove('loaded'); // fade out
+        setTimeout(loadBackgroundImage, 2000); // load new after fade-out
+    }
+
     // ─── Init ──────────────────────────────────────────────────────────
 
     updateClock();
     setInterval(updateClock, CLOCK_INTERVAL);
     fetchState();
     setInterval(fetchState, POLL_INTERVAL);
+    loadBackgroundImage();
+    setInterval(rotateBackgroundImage, BG_ROTATE_INTERVAL);
 
 })();
