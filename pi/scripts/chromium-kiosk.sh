@@ -1,6 +1,7 @@
 #!/bin/bash
 # Launch Chromium in kiosk mode for FocusBoard dashboard
 # Called by focusboard.service
+# NOTE: nginx serves dashboard on port 8080 (not python http.server)
 
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
 export WAYLAND_DISPLAY=wayland-0
@@ -16,12 +17,6 @@ wlr-randr --output HDMI-A-1 --transform 90 2>/dev/null || true
 # Wait for desktop to settle
 sleep 3
 
-# Start local HTTP server for dashboard (fetch needs http://)
-cd /home/jopi/focusboard/dashboard
-python3 -m http.server 8080 --bind 127.0.0.1 &
-HTTP_PID=$!
-sleep 1
-
 # Disable Chromium crash recovery popup
 for prefs in /home/jopi/.config/chromium/Default/Preferences; do
     if [ -f "$prefs" ]; then
@@ -30,7 +25,11 @@ for prefs in /home/jopi/.config/chromium/Default/Preferences; do
     fi
 done
 
+# Hide mouse cursor (install: sudo apt install unclutter-xfixes)
+unclutter --idle 0 &
+
 # Launch Chromium in kiosk mode
+# nginx serves on port 8080
 CHROMIUM=$(which chromium-browser 2>/dev/null || which chromium)
 $CHROMIUM \
     --kiosk \
@@ -45,6 +44,3 @@ $CHROMIUM \
     --autoplay-policy=no-user-gesture-required \
     --ozone-platform=wayland \
     http://127.0.0.1:8080/index.html
-
-# Cleanup
-kill $HTTP_PID 2>/dev/null

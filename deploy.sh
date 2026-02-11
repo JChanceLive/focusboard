@@ -27,5 +27,8 @@ scp -o ConnectTimeout=5 \
     "$SCRIPT_DIR/pi/config/focusboard.service" \
     "$PI_HOST:$PI_BASE/config/"
 
-echo "Deployed. Refresh browser on Pi:"
-echo "  ssh $PI_HOST 'DISPLAY=:0 xdotool key F5'"
+# NOTE: Pi uses nginx on port 8080 (not python http.server).
+# nginx must be installed and configured: /etc/nginx/sites-enabled/focusboard
+# Restart service after deploy to pick up changes:
+echo "Deployed. Restart focusboard service on Pi:"
+echo "  ssh $PI_HOST 'sudo systemctl restart focusboard'"

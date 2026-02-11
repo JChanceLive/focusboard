@@ -7,11 +7,14 @@
     const POLL_INTERVAL = 10000;
     const CLOCK_INTERVAL = 1000;
     const OFFLINE_THRESHOLD = 5 * 60 * 1000;
-    const NIGHT_HOUR = 21;
+    const NIGHT_START_HOUR = 21;
+    const NIGHT_END_HOUR = 5;
     const BG_ROTATE_INTERVAL = 30 * 60 * 1000; // rotate bg image every 30 min
 
     let lastState = null;
     let lastGeneratedAt = null;
+    let nightModeActive = false;
+    let nightCountdownId = null;
 
     // ─── DOM refs ──────────────────────────────────────────────────────
 
@@ -34,22 +37,128 @@
     const $tomorrowBar = $('tomorrow-bar');
     const $syncDot = $('sync-dot');
     const $syncText = $('sync-text');
+    const $nightMoon = $('night-moon');
+    const $nightClock = $('night-clock');
+    const $nightDate = $('night-date');
+    const $nightCountdown = $('night-countdown');
 
     // ─── Clock ─────────────────────────────────────────────────────────
 
-    function updateClock() {
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const h12 = hours % 12 || 12;
-        $clock.textContent = `${h12}:${minutes} ${ampm}`;
+    function isNightTime() {
+        var h = new Date().getHours();
+        return h >= NIGHT_START_HOUR || h < NIGHT_END_HOUR;
+    }
 
-        if (hours >= NIGHT_HOUR || hours < 5) {
-            document.body.classList.add('night-mode');
+    function formatClockString(date) {
+        var hours = date.getHours();
+        var minutes = date.getMinutes().toString().padStart(2, '0');
+        var ampm = hours >= 12 ? 'PM' : 'AM';
+        var h12 = hours % 12 || 12;
+        return h12 + ':' + minutes + ' ' + ampm;
+    }
+
+    function updateClock() {
+        var now = new Date();
+        var timeStr = formatClockString(now);
+        $clock.textContent = timeStr;
+
+        if (isNightTime()) {
+            if (!nightModeActive) enterNightMode();
+            // Update night clock every tick
+            $nightClock.textContent = timeStr;
         } else {
-            document.body.classList.remove('night-mode');
+            if (nightModeActive) exitNightMode();
         }
+    }
+
+    // ─── Moon Phase ─────────────────────────────────────────────────
+
+    function getMoonPhase() {
+        // Calculate moon phase from a known new moon reference date
+        // Jan 6, 2000 18:14 UTC was a new moon
+        var ref = new Date(2000, 0, 6, 18, 14, 0);
+        var now = new Date();
+        var diff = now.getTime() - ref.getTime();
+        var days = diff / 86400000;
+        var cycle = 29.53058770576;
+        var phase = ((days % cycle) + cycle) % cycle;
+        var index = Math.round(phase / cycle * 8) % 8;
+        // Emoji sequence: new, waxing crescent, first quarter, waxing gibbous,
+        // full, waning gibbous, last quarter, waning crescent
+        var emojis = ['\uD83C\uDF11', '\uD83C\uDF12', '\uD83C\uDF13', '\uD83C\uDF14',
+                      '\uD83C\uDF15', '\uD83C\uDF16', '\uD83C\uDF17', '\uD83C\uDF18'];
+        return emojis[index];
+    }
+
+    // ─── Night Mode Lifecycle ────────────────────────────────────────
+
+    function enterNightMode() {
+        nightModeActive = true;
+        document.body.classList.add('night-mode');
+
+        // Update night overlay content
+        $nightMoon.textContent = getMoonPhase();
+        var now = new Date();
+        $nightClock.textContent = formatClockString(now);
+        $nightDate.textContent = now.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric'
+        });
+
+        // Start countdown
+        updateNightCountdown();
+        nightCountdownId = setInterval(updateNightCountdown, 60000);
+    }
+
+    function exitNightMode() {
+        nightModeActive = false;
+        document.body.classList.remove('night-mode');
+
+        // Clear intervals
+        if (nightCountdownId) { clearInterval(nightCountdownId); nightCountdownId = null; }
+    }
+
+    function updateNightCountdown() {
+        if (!lastState || !lastState.blocks || !lastState.blocks.length) {
+            $nightCountdown.innerHTML = '';
+            return;
+        }
+
+        // Find first block of the day
+        var firstBlock = lastState.blocks[0];
+        var now = new Date();
+
+        // Parse block time (e.g., "6:30")
+        var parts = firstBlock.time.split(':');
+        var blockHour = parseInt(parts[0], 10);
+        var blockMin = parseInt(parts[1], 10);
+
+        // Build target date: if we're before midnight and block is morning,
+        // target is tomorrow. If we're after midnight, target is today.
+        var target = new Date(now);
+        target.setHours(blockHour, blockMin, 0, 0);
+
+        // If target is in the past (we're in the evening, block is morning), add a day
+        if (target <= now) {
+            target.setDate(target.getDate() + 1);
+        }
+
+        var diffMs = target - now;
+        var diffH = Math.floor(diffMs / 3600000);
+        var diffM = Math.floor((diffMs % 3600000) / 60000);
+
+        var blockName = firstBlock.block || 'First Block';
+        var timeStr = diffH > 0
+            ? diffH + 'h ' + diffM + 'm'
+            : diffM + 'm';
+
+        $nightCountdown.innerHTML =
+            '<div class="nc-block">' + esc(blockName) + ' in</div>' +
+            '<div class="nc-time">' + timeStr + '</div>';
+
+        // Update night date too (in case it rolls past midnight)
+        $nightDate.textContent = now.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric'
+        });
     }
 
     // ─── Fetch state ───────────────────────────────────────────────────
@@ -110,16 +219,21 @@
     function render(state) {
         $dateLabel.textContent = state.day_label || '';
 
+        // During night mode, only update countdown data (overlay is handled by lifecycle)
+        if (nightModeActive) {
+            updateNightCountdown();
+            return;
+        }
+
         const allDone = state.meta && state.meta.all_done;
         const noSchedule = state.meta && state.meta.no_schedule;
-        const isNight = new Date().getHours() >= NIGHT_HOUR || new Date().getHours() < 5;
 
-        // Remove old overlay
-        const oldOverlay = $currentBlock.querySelector('.night-overlay');
+        // Remove old legacy overlay
+        const oldOverlay = $currentBlock.querySelector('.night-legacy-overlay');
         if (oldOverlay) oldOverlay.remove();
 
-        if (isNight || allDone) {
-            renderNightOrComplete(state, allDone);
+        if (allDone) {
+            renderDayComplete(state);
         } else if (noSchedule) {
             renderWaiting(state);
         } else {
@@ -204,15 +318,15 @@
         if (divider) divider.style.display = '';
     }
 
-    function renderNightOrComplete(state, allDone) {
+    function renderDayComplete(state) {
         const tf = state.tomorrow_focus || {};
 
-        setBlockColor(allDone ? '#2ecc71' : '#555');
-        $currentBlock.className = allDone ? 'current-block day-complete' : 'current-block';
+        setBlockColor('#2ecc71');
+        $currentBlock.className = 'current-block day-complete';
 
-        $currentIcon.textContent = allDone ? '\u2714' : '\u263E';
+        $currentIcon.textContent = '\u2714';
         $currentIcon.style.display = '';
-        $currentBlockName.textContent = allDone ? 'Day Complete' : '';
+        $currentBlockName.textContent = 'Day Complete';
         $currentSublabel.style.display = 'none';
         $currentTask.textContent = '';
         $currentFile.textContent = '';
@@ -224,7 +338,7 @@
         if (divider) divider.style.display = 'none';
 
         const overlay = document.createElement('div');
-        overlay.className = 'night-overlay';
+        overlay.className = 'night-legacy-overlay';
 
         if (tf.task) {
             overlay.innerHTML = `
@@ -398,16 +512,16 @@
     const $bgImage = $('bg-image');
 
     function loadBackgroundImage() {
-        // loremflickr: free random images filtered by keyword, no API key
-        const url = 'https://loremflickr.com/1080/1920/nature,forest,mountain,ocean?lock=' + Math.floor(Math.random() * 10000);
+        // picsum.photos: reliable, always returns exact dimensions requested (portrait 1080x1920)
+        const url = 'https://picsum.photos/1080/1920?random=' + Math.floor(Math.random() * 10000);
         const img = new Image();
         img.onload = function () {
             $bgImage.style.backgroundImage = 'url(' + img.src + ')';
             $bgImage.classList.add('loaded');
         };
         img.onerror = function () {
-            // Fallback to picsum if loremflickr is down
-            const fallback = 'https://picsum.photos/1080/1920?t=' + Date.now();
+            // Fallback to loremflickr
+            const fallback = 'https://loremflickr.com/1080/1920/nature,forest,mountain,ocean?lock=' + Math.floor(Math.random() * 10000);
             const fb = new Image();
             fb.onload = function () {
                 $bgImage.style.backgroundImage = 'url(' + fb.src + ')';
@@ -422,6 +536,36 @@
         $bgImage.classList.remove('loaded'); // fade out
         setTimeout(loadBackgroundImage, 2000); // load new after fade-out
     }
+
+    // ─── Night Mode Test Toggle ─────────────────────────────────────
+
+    var nightForced = false;
+
+    // URL param ?night forces night mode for testing
+    if (window.location.search.indexOf('night') !== -1) {
+        nightForced = true;
+    }
+
+    // Press 'N' to toggle night mode for testing
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'n' || e.key === 'N') {
+            nightForced = !nightForced;
+            if (nightForced) {
+                enterNightMode();
+            } else {
+                exitNightMode();
+                // Re-render day view
+                if (lastState) render(lastState);
+            }
+        }
+    });
+
+    // Override isNightTime to respect forced mode
+    var _origIsNight = isNightTime;
+    isNightTime = function () {
+        if (nightForced) return true;
+        return _origIsNight();
+    };
 
     // ─── Init ──────────────────────────────────────────────────────────
 

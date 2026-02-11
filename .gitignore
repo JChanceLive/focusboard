@@ -2,6 +2,9 @@
 state.json
 *.log
 
+# Night mode ambient videos (large, deployed separately)
+pi/dashboard/videos/
+
 # macOS
 .DS_Store
 
