@@ -1,0 +1,12 @@
+{
+  "google_calendar": {
+    "client_id": "YOUR_GOOGLE_CLIENT_ID",
+    "client_secret": "YOUR_GOOGLE_CLIENT_SECRET",
+    "refresh_token": "YOUR_GOOGLE_REFRESH_TOKEN"
+  },
+  "weather": {
+    "api_key": "YOUR_OPENWEATHERMAP_API_KEY",
+    "zip": "34465",
+    "country": "US"
+  }
+}

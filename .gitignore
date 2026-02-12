@@ -12,8 +12,15 @@ pi/dashboard/videos/
 __pycache__/
 *.pyc
 
-# Credentials
+# Credentials / API keys (NEVER commit)
 focusboard-config.json
+*.secret
+*.key
+*credentials*
+*token.json
+
+# Allow the safe example template
+!focusboard-config.example.json
 
 # Editor
 .vscode/
