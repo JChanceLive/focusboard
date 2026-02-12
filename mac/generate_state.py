@@ -15,7 +15,8 @@ import os
 import re
 import sys
 import yaml
-from datetime import datetime, timezone
+import requests
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -26,6 +27,8 @@ TODAY_PATH = VAULT_ACTIVE / "TODAY.md"
 FOCUS_PATH = Path.home() / ".claude" / "claude-vault" / "daily" / "focus.md"
 KEYSTONES_PATH = Path.home() / ".claude" / "timekeeper" / "keystones.yaml"
 PHILOSOPHY_PATH = Path.home() / ".claude" / "timekeeper" / "philosophy.md"
+CONFIG_PATH = Path.home() / ".claude" / "pi" / "focusboard-config.json"
+STREAKS_PATH = Path.home() / ".claude" / "timekeeper" / "keystone_streaks.json"
 
 # Block type mapping derived from philosophy.md
 BLOCK_TYPES = {
@@ -432,6 +435,222 @@ def match_keystones_to_blocks(keystones: list[dict], blocks: list[dict]) -> list
     return keystones
 
 
+# ─── Config & API Fetching ────────────────────────────────────────────────────
+
+def load_config() -> dict:
+    """Load focusboard-config.json, return {} on failure."""
+    try:
+        return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    except (FileNotFoundError, PermissionError, json.JSONDecodeError):
+        return {}
+
+
+def fetch_google_calendar(config: dict) -> list[dict]:
+    """Fetch upcoming events from Google Calendar REST API.
+
+    Uses OAuth2 refresh token flow. Returns [] on any failure.
+    """
+    gc = config.get("google_calendar", {})
+    client_id = gc.get("client_id", "")
+    client_secret = gc.get("client_secret", "")
+    refresh_token = gc.get("refresh_token", "")
+
+    if not all([client_id, client_secret, refresh_token]):
+        return []
+    # Skip placeholder values
+    if client_id == "FROM_ZSHRC":
+        return []
+
+    try:
+        # Exchange refresh token for access token
+        token_resp = requests.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token",
+            },
+            timeout=10,
+        )
+        token_resp.raise_for_status()
+        access_token = token_resp.json()["access_token"]
+
+        # Fetch events: now through end of tomorrow
+        now = datetime.now().astimezone()
+        tomorrow_end = (now + timedelta(days=2)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+
+        params = {
+            "timeMin": now.isoformat(),
+            "timeMax": tomorrow_end.isoformat(),
+            "singleEvents": "true",
+            "orderBy": "startTime",
+            "maxResults": "20",
+        }
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        events_resp = requests.get(
+            "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+            params=params,
+            headers=headers,
+            timeout=10,
+        )
+        events_resp.raise_for_status()
+
+        events = []
+        for item in events_resp.json().get("items", []):
+            start = item.get("start", {})
+            end = item.get("end", {})
+
+            # All-day events use 'date', timed events use 'dateTime'
+            all_day = "date" in start and "dateTime" not in start
+
+            events.append({
+                "title": item.get("summary", "(No title)"),
+                "start": start.get("dateTime", start.get("date", "")),
+                "end": end.get("dateTime", end.get("date", "")),
+                "all_day": all_day,
+                "location": item.get("location", ""),
+            })
+
+        return events
+
+    except Exception:
+        return []
+
+
+# OpenWeatherMap icon code -> Unicode weather symbol
+OWM_ICON_MAP = {
+    "01d": "\u2600",      # ☀ clear sky day
+    "01n": "\u263E",      # ☾ clear sky night
+    "02d": "\u26C5",      # ⛅ few clouds day
+    "02n": "\u2601",      # ☁ few clouds night
+    "03d": "\u2601",      # ☁ scattered clouds
+    "03n": "\u2601",
+    "04d": "\u2601",      # ☁ broken clouds
+    "04n": "\u2601",
+    "09d": "\uD83C\uDF27",  # 🌧 shower rain (surrogate pair, will be escaped)
+    "09n": "\uD83C\uDF27",
+    "10d": "\uD83C\uDF26",  # 🌦 rain day
+    "10n": "\uD83C\uDF27",  # 🌧 rain night
+    "11d": "\u26C8",      # ⛈ thunderstorm
+    "11n": "\u26C8",
+    "13d": "\u2744",      # ❄ snow
+    "13n": "\u2744",
+    "50d": "\uD83C\uDF2B",  # 🌫 mist
+    "50n": "\uD83C\uDF2B",
+}
+
+
+def fetch_weather(config: dict) -> dict:
+    """Fetch current weather from OpenWeatherMap. Returns {} on failure."""
+    wc = config.get("weather", {})
+    api_key = wc.get("api_key", "")
+    zip_code = wc.get("zip", "34465")
+    country = wc.get("country", "US")
+
+    if not api_key or api_key == "SIGNUP_AT_OPENWEATHERMAP":
+        return {}
+
+    try:
+        resp = requests.get(
+            "https://api.openweathermap.org/data/2.5/weather",
+            params={
+                "zip": f"{zip_code},{country}",
+                "units": "imperial",
+                "appid": api_key,
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        main = data.get("main", {})
+        weather = data.get("weather", [{}])[0]
+        icon_code = weather.get("icon", "01d")
+
+        return {
+            "temp": round(main.get("temp", 0)),
+            "feels_like": round(main.get("feels_like", 0)),
+            "high": round(main.get("temp_max", 0)),
+            "low": round(main.get("temp_min", 0)),
+            "condition": weather.get("main", ""),
+            "description": weather.get("description", ""),
+            "icon_char": OWM_ICON_MAP.get(icon_code, "\u2600"),
+            "humidity": main.get("humidity", 0),
+        }
+
+    except Exception:
+        return {}
+
+
+def load_and_update_streaks(keystones: list[dict], date_iso: str) -> None:
+    """Load keystone streaks, update with today's data, enrich keystones in-place.
+
+    Streak file format:
+    {
+        "daily_log": {"2026-02-11": {"K1": true, "K2": false, ...}, ...},
+        "streaks": {"K1": {"current": 5, "best": 12}, ...}
+    }
+    """
+    # Load or initialize
+    try:
+        streak_data = json.loads(STREAKS_PATH.read_text(encoding="utf-8"))
+    except (FileNotFoundError, PermissionError, json.JSONDecodeError):
+        streak_data = {"daily_log": {}, "streaks": {}}
+
+    daily_log = streak_data.get("daily_log", {})
+    streaks = streak_data.get("streaks", {})
+
+    # Update today's entry
+    today_entry = {}
+    for ks in keystones:
+        today_entry[ks["id"]] = ks.get("done", False)
+    daily_log[date_iso] = today_entry
+
+    # Prune to last 30 days
+    if len(daily_log) > 30:
+        sorted_dates = sorted(daily_log.keys())
+        for old_date in sorted_dates[:-30]:
+            del daily_log[old_date]
+
+    # Calculate streaks per keystone
+    sorted_dates = sorted(daily_log.keys(), reverse=True)
+    for ks in keystones:
+        kid = ks["id"]
+        current_streak = 0
+        for d in sorted_dates:
+            if daily_log[d].get(kid, False):
+                current_streak += 1
+            else:
+                break
+
+        best = streaks.get(kid, {}).get("best", 0)
+        if current_streak > best:
+            best = current_streak
+
+        streaks[kid] = {"current": current_streak, "best": best}
+
+        # Enrich keystone dict in-place
+        ks["streak"] = current_streak
+        ks["best_streak"] = best
+
+    # Write back
+    streak_data["daily_log"] = daily_log
+    streak_data["streaks"] = streaks
+
+    try:
+        STREAKS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STREAKS_PATH.write_text(
+            json.dumps(streak_data, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    except (PermissionError, OSError):
+        pass  # Non-critical, streaks just won't persist
+
+
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 def generate_state() -> dict:
@@ -443,6 +662,9 @@ def generate_state() -> dict:
     focus_content = read_file(FOCUS_PATH)
     keystones_content = read_file(KEYSTONES_PATH)
     philosophy_content = read_file(PHILOSOPHY_PATH)
+
+    # Load config for API calls
+    config = load_config()
 
     # Handle missing TODAY.md
     if not today_content:
@@ -460,7 +682,9 @@ def generate_state() -> dict:
             },
             "recording_ready": {"cc": 0, "pioneers": 0, "ha": 0, "zendo": 0, "total": 0},
             "quote": get_quote(philosophy_content),
-            "meta": {"sync_version": 1, "no_schedule": True},
+            "calendar": fetch_google_calendar(config),
+            "weather": fetch_weather(config),
+            "meta": {"sync_version": 2, "no_schedule": True},
         }
 
     # Parse TODAY.md sections
@@ -537,6 +761,13 @@ def generate_state() -> dict:
     # Get quote
     quote = get_quote(philosophy_content)
 
+    # Fetch external data
+    calendar_events = fetch_google_calendar(config)
+    weather = fetch_weather(config)
+
+    # Update keystone streaks (enriches keystones in-place with streak/best_streak)
+    load_and_update_streaks(keystones, date_iso)
+
     # All blocks done?
     all_done = all(b["done"] for b in blocks) if blocks else False
 
@@ -552,8 +783,10 @@ def generate_state() -> dict:
         "tomorrow_focus": tomorrow_focus,
         "recording_ready": recording_ready,
         "quote": quote,
+        "calendar": calendar_events,
+        "weather": weather,
         "meta": {
-            "sync_version": 1,
+            "sync_version": 2,
             "no_schedule": len(blocks) == 0,
             "all_done": all_done,
         },

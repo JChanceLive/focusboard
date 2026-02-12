@@ -1,4 +1,4 @@
-/* FocusBoard Dashboard - Portrait, responsive */
+/* FocusBoard Dashboard V2 - Portrait, three-zone layout */
 
 :root {
     /* Base colors */
@@ -20,7 +20,7 @@
 
     /* Layout */
     --header-height: 70px;
-    --footer-height: 55px;
+    --footer-height: 50px;
     --sync-height: 36px;
     --side-padding: 36px;
 }
@@ -68,10 +68,11 @@ body {
 
 /* Hide day sections */
 body.night-mode .current-block,
-body.night-mode .schedule,
+body.night-mode .bottom-zone,
 body.night-mode .footer,
 body.night-mode .sync-status,
-body.night-mode .offline-banner {
+body.night-mode .offline-banner,
+body.night-mode .weather-widget {
     display: none !important;
 }
 
@@ -93,7 +94,6 @@ body.night-mode .bg-image {
 .night-gradient {
     display: none;
 }
-
 
 /* Night overlay */
 .night-overlay {
@@ -186,12 +186,12 @@ body.night-mode .night-overlay {
 }
 
 /* Content layers above bg-image */
-.header, .current-block, .schedule, .footer, .sync-status, .offline-banner {
+.header, .current-block, .bottom-zone, .footer, .sync-status, .offline-banner {
     position: relative;
     z-index: 1;
 }
 
-/* ─── Header ─── */
+/* ─── Header (3-column: clock | weather | date) ─── */
 
 .header {
     height: var(--header-height);
@@ -208,12 +208,39 @@ body.night-mode .night-overlay {
     font-weight: 300;
     letter-spacing: 2px;
     color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.weather-widget {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    color: var(--text-secondary);
+    font-weight: 300;
+}
+
+.weather-widget .weather-icon {
+    font-size: 26px;
+}
+
+.weather-widget .weather-temp {
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--text-primary);
+}
+
+.weather-widget .weather-condition {
+    font-size: 16px;
+    color: var(--text-muted);
+    text-transform: capitalize;
 }
 
 .date-label {
     font-size: 26px;
     font-weight: 300;
     color: var(--text-secondary);
+    flex-shrink: 0;
 }
 
 /* ─── Current Block (Hero) ─── */
@@ -254,7 +281,7 @@ body.night-mode .night-overlay {
 
 .current-block-name {
     font-size: 56px;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 6px;
     text-transform: uppercase;
     color: var(--text-primary);
@@ -276,13 +303,13 @@ body.night-mode .night-overlay {
     width: 160px;
     height: 2px;
     background: var(--bg-elevated);
-    margin: 20px 0;
+    margin: 18px 0;
     border-radius: 2px;
 }
 
 .current-task {
-    font-size: 36px;
-    font-weight: 400;
+    font-size: 34px;
+    font-weight: 300;
     color: var(--text-secondary);
     text-align: center;
     line-height: 1.3;
@@ -293,7 +320,7 @@ body.night-mode .night-overlay {
     font-size: 18px;
     font-weight: 300;
     color: var(--text-muted);
-    margin-top: 14px;
+    margin-top: 12px;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 }
 
@@ -310,13 +337,13 @@ body.night-mode .night-overlay {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    margin-top: 20px;
+    gap: 5px;
+    margin-top: 16px;
     max-width: 90%;
 }
 
 .current-details .detail-item {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 300;
     color: var(--text-muted);
     letter-spacing: 0.5px;
@@ -338,65 +365,94 @@ body.night-mode .night-overlay {
     color: var(--done);
 }
 
-/* ─── Schedule ─── */
-
-.schedule {
-    max-height: 30%;
-    border-top: 1px solid var(--bg-elevated);
-    padding: 12px var(--side-padding);
-    overflow-y: auto;
-    flex-shrink: 0;
+/* Behind schedule indicator on hero */
+.current-behind {
+    font-size: 16px;
+    font-weight: 400;
+    color: #e67e22;
+    margin-top: 6px;
+    letter-spacing: 1px;
 }
 
-/* Hide scrollbar */
-.schedule::-webkit-scrollbar {
+/* ─── Bottom Zone (two-column: schedule + calendar) ─── */
+
+.bottom-zone {
+    height: 42%;
+    display: flex;
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.bottom-left,
+.bottom-right {
+    flex: 1;
+    padding: 12px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.bottom-left {
+    border-right: 1px solid var(--bg-elevated);
+}
+
+/* Hide scrollbar in both columns */
+.bottom-left::-webkit-scrollbar,
+.bottom-right::-webkit-scrollbar {
     display: none;
 }
 
-.schedule-title {
-    font-size: 15px;
+.section-title {
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 3px;
     color: var(--text-muted);
     margin-bottom: 8px;
+    flex-shrink: 0;
 }
+
+/* ─── Schedule (left column) ─── */
 
 .schedule-list {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
 }
 
 .schedule-item {
     display: flex;
     align-items: baseline;
-    gap: 12px;
-    font-size: 20px;
-    line-height: 1.5;
+    gap: 8px;
+    font-size: 17px;
+    line-height: 1.4;
     padding: 2px 0;
 }
 
 .schedule-item .s-icon {
-    width: 24px;
+    width: 18px;
     text-align: center;
     flex-shrink: 0;
-    font-size: 16px;
+    font-size: 13px;
 }
 
 .schedule-item .s-time {
-    width: 60px;
+    width: 50px;
     color: var(--text-muted);
     font-weight: 300;
     flex-shrink: 0;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-    font-size: 17px;
+    font-size: 14px;
 }
 
 .schedule-item .s-block {
-    width: 130px;
+    width: 100px;
     font-weight: 600;
     flex-shrink: 0;
-    font-size: 18px;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .schedule-item .s-task {
@@ -406,7 +462,7 @@ body.night-mode .night-overlay {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 18px;
+    font-size: 15px;
 }
 
 /* Done items */
@@ -416,7 +472,7 @@ body.night-mode .night-overlay {
 .schedule-item.done .s-time { color: var(--text-muted); }
 
 /* Current item */
-.schedule-item.current .s-icon { color: var(--current); font-size: 18px; }
+.schedule-item.current .s-icon { color: var(--current); font-size: 15px; }
 .schedule-item.current .s-block { color: var(--text-primary); }
 .schedule-item.current .s-task { color: var(--text-primary); }
 
@@ -426,16 +482,16 @@ body.night-mode .night-overlay {
 
 /* Color dot on schedule items */
 .schedule-item .s-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0;
-    margin-right: -4px;
+    margin-right: -2px;
 }
 
 /* Skipped (unchecked but time has passed) */
-.schedule-item.skipped .s-icon { color: #e67e22; font-size: 14px; }
+.schedule-item.skipped .s-icon { color: #e67e22; font-size: 12px; }
 .schedule-item.skipped .s-block { color: #e67e22; opacity: 0.7; }
 .schedule-item.skipped .s-task { color: var(--text-muted); }
 .schedule-item.skipped .s-time { color: #e67e22; opacity: 0.7; }
@@ -444,12 +500,12 @@ body.night-mode .night-overlay {
 .schedule-now-marker {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 3px 0;
+    gap: 6px;
+    padding: 2px 0;
 }
 
 .schedule-now-marker .now-label {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--current);
     letter-spacing: 2px;
@@ -463,22 +519,78 @@ body.night-mode .night-overlay {
     opacity: 0.5;
 }
 
-/* Behind schedule indicator on hero */
-.current-behind {
-    font-size: 16px;
-    font-weight: 400;
-    color: #e67e22;
-    margin-top: 6px;
-    letter-spacing: 1px;
+/* ─── Calendar (right column) ─── */
+
+.calendar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-/* ─── Footer ─── */
+.cal-day-divider {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    margin-bottom: 2px;
+}
+
+.cal-day-divider:first-child {
+    margin-top: 0;
+}
+
+.cal-event {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border-left: 3px solid var(--current);
+}
+
+.cal-event .cal-time {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.cal-event .cal-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cal-event .cal-location {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cal-event.all-day {
+    border-left-color: var(--done);
+}
+
+.cal-empty {
+    font-size: 15px;
+    color: var(--text-muted);
+    font-weight: 300;
+    padding: 12px 0;
+}
+
+/* ─── Footer (keystones with streaks) ─── */
 
 .footer {
     height: var(--footer-height);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 0 var(--side-padding);
     border-top: 1px solid var(--bg-elevated);
     flex-shrink: 0;
@@ -489,32 +601,39 @@ body.night-mode .night-overlay {
     letter-spacing: 4px;
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 6px;
 }
 
 .keystones-bar .ks-label {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--text-muted);
-    margin-right: 6px;
+    margin-right: 4px;
     letter-spacing: 1px;
+}
+
+.ks-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+.ks-item .ks-symbol {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.ks-item .ks-streak {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    line-height: 1;
 }
 
 .ks-done { color: var(--done); }
 .ks-pending { color: var(--text-muted); }
 .ks-critical { font-weight: bold; }
-
-.tomorrow-bar {
-    font-size: 18px;
-    color: var(--text-secondary);
-    font-weight: 300;
-}
-
-.tomorrow-bar .tm-label {
-    color: var(--text-muted);
-    font-weight: 600;
-    margin-right: 6px;
-}
 
 /* ─── Sync Status ─── */
 

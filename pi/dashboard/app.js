@@ -1,5 +1,6 @@
-// FocusBoard Dashboard - app.js
-// Polls state.json, renders dashboard with per-block icons/colors/details
+// FocusBoard Dashboard V2 - app.js
+// Polls state.json, renders dashboard with per-block icons/colors/details,
+// weather widget, Google Calendar panel, and keystone streaks
 
 (function () {
     'use strict';
@@ -21,6 +22,7 @@
     const $ = (id) => document.getElementById(id);
     const $clock = $('clock');
     const $dateLabel = $('date-label');
+    const $weatherWidget = $('weather-widget');
     const $offlineBanner = $('offline-banner');
     const $offlineTime = $('offline-time');
     const $currentBlock = $('current-block');
@@ -33,8 +35,9 @@
     const $currentBehind = $('current-behind');
     const $currentDetails = $('current-details');
     const $scheduleList = $('schedule-list');
+    const $calendarList = $('calendar-list');
+    const $bottomZone = $('bottom-zone');
     const $keystonesBar = $('keystones-bar');
-    const $tomorrowBar = $('tomorrow-bar');
     const $syncDot = $('sync-dot');
     const $syncText = $('sync-text');
     const $nightMoon = $('night-moon');
@@ -241,8 +244,9 @@
         }
 
         renderSchedule(state.blocks || []);
+        renderCalendar(state.calendar || []);
+        renderWeather(state.weather || {});
         renderKeystones(state.keystones || []);
-        renderTomorrow(state.tomorrow_focus);
     }
 
     function setBlockColor(color) {
@@ -436,31 +440,133 @@
         }
     }
 
+    // ─── Calendar Panel ─────────────────────────────────────────────
+
+    function renderCalendar(events) {
+        $calendarList.innerHTML = '';
+
+        if (!events || !events.length) {
+            var empty = document.createElement('div');
+            empty.className = 'cal-empty';
+            empty.textContent = 'No upcoming events';
+            $calendarList.appendChild(empty);
+            return;
+        }
+
+        var today = new Date();
+        var todayStr = today.toISOString().slice(0, 10);
+        var tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        var tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+        var currentGroup = '';
+
+        for (var i = 0; i < events.length; i++) {
+            var evt = events[i];
+            var startStr = evt.start || '';
+            var eventDate = startStr.slice(0, 10);
+
+            // Determine group label
+            var groupLabel = '';
+            if (eventDate === todayStr) {
+                groupLabel = 'TODAY';
+            } else if (eventDate === tomorrowStr) {
+                groupLabel = 'TOMORROW';
+            } else {
+                // Future date
+                try {
+                    var d = new Date(startStr);
+                    groupLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                } catch (e) {
+                    groupLabel = eventDate;
+                }
+            }
+
+            // Insert day divider if group changed
+            if (groupLabel !== currentGroup) {
+                var divider = document.createElement('div');
+                divider.className = 'cal-day-divider';
+                divider.textContent = groupLabel;
+                $calendarList.appendChild(divider);
+                currentGroup = groupLabel;
+            }
+
+            // Event card
+            var card = document.createElement('div');
+            card.className = 'cal-event' + (evt.all_day ? ' all-day' : '');
+
+            var timeHtml = '';
+            if (evt.all_day) {
+                timeHtml = '<span class="cal-time">All day</span>';
+            } else {
+                var startTime = formatEventTime(evt.start);
+                var endTime = formatEventTime(evt.end);
+                timeHtml = '<span class="cal-time">' + startTime + ' \u2013 ' + endTime + '</span>';
+            }
+
+            var locationHtml = evt.location
+                ? '<span class="cal-location">' + esc(evt.location) + '</span>'
+                : '';
+
+            card.innerHTML = timeHtml +
+                '<span class="cal-title">' + esc(evt.title) + '</span>' +
+                locationHtml;
+
+            $calendarList.appendChild(card);
+        }
+    }
+
+    function formatEventTime(isoStr) {
+        if (!isoStr) return '';
+        try {
+            var d = new Date(isoStr);
+            var h = d.getHours();
+            var m = d.getMinutes().toString().padStart(2, '0');
+            var ampm = h >= 12 ? 'PM' : 'AM';
+            var h12 = h % 12 || 12;
+            return h12 + ':' + m + ' ' + ampm;
+        } catch (e) {
+            return isoStr;
+        }
+    }
+
+    // ─── Weather Widget ──────────────────────────────────────────────
+
+    function renderWeather(weather) {
+        if (!weather || !weather.temp) {
+            $weatherWidget.innerHTML = '';
+            return;
+        }
+
+        $weatherWidget.innerHTML =
+            '<span class="weather-icon">' + (weather.icon_char || '\u2600') + '</span>' +
+            '<span class="weather-temp">' + weather.temp + '\u00B0</span>' +
+            '<span class="weather-condition">' + esc(weather.condition || '') + '</span>';
+    }
+
+    // ─── Keystones (with streaks) ────────────────────────────────────
+
     function renderKeystones(keystones) {
         if (!keystones.length) {
             $keystonesBar.innerHTML = '';
             return;
         }
 
-        let html = '<span class="ks-label">K:</span>';
-        for (const ks of keystones) {
-            const cls = ks.done ? 'ks-done' : 'ks-pending';
-            const critical = ks.critical ? ' ks-critical' : '';
-            const symbol = ks.done ? '\u25C6' : '\u25C7';
-            html += `<span class="${cls}${critical}" title="${esc(ks.name)}">${symbol}</span>`;
+        var html = '<span class="ks-label">K:</span>';
+        for (var i = 0; i < keystones.length; i++) {
+            var ks = keystones[i];
+            var cls = ks.done ? 'ks-done' : 'ks-pending';
+            var critical = ks.critical ? ' ks-critical' : '';
+            var symbol = ks.done ? '\u25C6' : '\u25C7';
+            var streak = ks.streak || 0;
+            var streakLabel = streak > 0 ? streak + 'd' : '';
+
+            html += '<span class="ks-item ' + cls + critical + '" title="' + esc(ks.name) + '">' +
+                '<span class="ks-symbol">' + symbol + '</span>' +
+                '<span class="ks-streak">' + streakLabel + '</span>' +
+                '</span>';
         }
         $keystonesBar.innerHTML = html;
-    }
-
-    function renderTomorrow(tf) {
-        if (!tf || !tf.task) {
-            $tomorrowBar.innerHTML = '<span class="tm-label">Tomorrow:</span> Not planned yet';
-            return;
-        }
-        let task = tf.task;
-        if (task.length > 35) task = task.substring(0, 32) + '...';
-        const action = tf.action ? `${tf.action}: ` : '';
-        $tomorrowBar.innerHTML = `<span class="tm-label">Tomorrow:</span> ${esc(action)}${esc(task)}`;
     }
 
     // ─── Time Helpers (Hybrid Mode) ─────────────────────────────────

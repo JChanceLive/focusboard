@@ -12,6 +12,9 @@ pi/dashboard/videos/
 __pycache__/
 *.pyc
 
+# Credentials
+focusboard-config.json
+
 # Editor
 .vscode/
 *.swp
