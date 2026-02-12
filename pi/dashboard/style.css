@@ -5,21 +5,20 @@
     --bg: #0d0d0d;
     --bg-surface: #1a1a1a;
     --bg-elevated: #242424;
-    --text-primary: #e8e8e8;
-    --text-secondary: #888;
-    --text-muted: #555;
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-muted: #bbbbbb;
 
     /* Status */
     --done: #2ecc71;
     --current: #3498db;
-    --pending: #555;
+    --pending: #bbbbbb;
     --offline: #e74c3c;
 
     /* Dynamic - set by JS per block */
     --block-color: #3498db;
 
     /* Layout */
-    --footer-height: 50px;
     --sync-height: 36px;
     --side-padding: 36px;
 }
@@ -68,10 +67,9 @@ body {
 /* Hide day sections */
 body.night-mode .current-block,
 body.night-mode .bottom-zone,
-body.night-mode .footer,
 body.night-mode .sync-status,
 body.night-mode .offline-banner,
-body.night-mode .date-bar {
+body.night-mode .header-bar {
     display: none !important;
 }
 
@@ -181,26 +179,66 @@ body.night-mode .night-overlay {
 }
 
 /* Content layers above bg-image */
-.date-bar, .current-block, .bottom-zone, .footer, .sync-status, .offline-banner {
+.header-bar, .current-block, .bottom-zone, .sync-status, .offline-banner {
     position: relative;
     z-index: 1;
 }
 
-/* ─── Date Bar (top center, minimal) ─── */
+/* ─── Header Bar (date + counters + keystones) ─── */
 
-.date-bar {
+.header-bar {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 20px 0 8px;
+    justify-content: space-between;
+    padding: 14px var(--side-padding);
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--bg-elevated);
+}
+
+.header-date {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    letter-spacing: 2px;
     flex-shrink: 0;
 }
 
-.date-label {
-    font-size: 34px;
-    font-weight: 300;
-    color: var(--text-secondary);
-    letter-spacing: 3px;
+.header-counters {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.hc {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.hc-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.hc-lbl {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+}
+
+.hc-dot {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.header-keystones {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
 }
 
 /* ─── Hero Weather (above icon in hero section) ─── */
@@ -598,31 +636,13 @@ body.night-mode .night-overlay {
     padding: 12px 0;
 }
 
-/* ─── Footer (keystones with streaks) ─── */
+/* ─── Keystones (inline in header) ─── */
 
-.footer {
-    height: var(--footer-height);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 var(--side-padding);
-    border-top: 1px solid var(--bg-elevated);
-    flex-shrink: 0;
-}
-
-.keystones-bar {
-    font-size: 22px;
-    letter-spacing: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.keystones-bar .ks-label {
-    font-size: 14px;
+.header-keystones .ks-label {
+    font-size: 12px;
     font-weight: 700;
     color: var(--text-muted);
-    margin-right: 4px;
+    margin-right: 2px;
     letter-spacing: 1px;
 }
 
@@ -634,12 +654,12 @@ body.night-mode .night-overlay {
 }
 
 .ks-item .ks-symbol {
-    font-size: 20px;
+    font-size: 16px;
     line-height: 1;
 }
 
 .ks-item .ks-streak {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     color: var(--text-muted);
     line-height: 1;

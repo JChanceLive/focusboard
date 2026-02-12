@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>FocusBoard</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
     <!-- Background nature image -->
@@ -25,9 +25,19 @@
         <div id="night-countdown" class="night-countdown"></div>
     </section>
 
-    <!-- Date (top center, minimal) -->
-    <div id="date-bar" class="date-bar">
-        <span id="date-label" class="date-label"></span>
+    <!-- Header: Date + Life Counters + Keystones -->
+    <div id="header-bar" class="header-bar">
+        <span id="date-label" class="header-date"></span>
+        <div class="header-counters">
+            <span class="hc"><span id="counter-alive" class="hc-val"></span><span class="hc-lbl">ALIVE</span></span>
+            <span class="hc-dot">·</span>
+            <span class="hc"><span id="counter-allin" class="hc-val"></span><span class="hc-lbl">ALL-IN</span></span>
+            <span class="hc-dot">·</span>
+            <span class="hc"><span id="counter-baby" class="hc-val"></span><span class="hc-lbl">REMY</span></span>
+            <span class="hc-dot" id="counter-launch-sep" style="display:none">·</span>
+            <span class="hc" id="counter-launch-item" style="display:none"><span id="counter-launch" class="hc-val"></span><span class="hc-lbl">LAUNCH</span></span>
+        </div>
+        <div id="keystones-bar" class="header-keystones"></div>
     </div>
 
     <!-- Offline Banner (below header) -->
@@ -61,11 +71,6 @@
             <div id="calendar-list" class="calendar-list"></div>
         </div>
     </section>
-
-    <!-- Footer: Keystones with streaks -->
-    <footer id="footer" class="footer">
-        <div id="keystones-bar" class="keystones-bar"></div>
-    </footer>
 
     <!-- Sync Status -->
     <div id="sync-status" class="sync-status">

@@ -589,7 +589,7 @@
             return;
         }
 
-        var html = '<span class="ks-label">K:</span>';
+        var html = '<span class="ks-label">KEYSTONES</span>';
         for (var i = 0; i < keystones.length; i++) {
             var ks = keystones[i];
             var cls = ks.done ? 'ks-done' : 'ks-pending';
@@ -640,6 +640,46 @@
             if (currentMin >= blockMinutes[i]) pos = i;
         }
         return pos;
+    }
+
+    // ─── Life Counters ──────────────────────────────────────────────────
+
+    var LIFE_DATES = {
+        alive: new Date(1987, 5, 3),     // June 3, 1987
+        allIn: new Date(2025, 5, 29),    // June 29, 2025
+        baby: new Date(2026, 0, 18),     // January 18, 2026
+        launch: null                      // Set date here when ready, e.g. new Date(2026, 2, 1)
+    };
+
+    var $counterAlive = $('counter-alive');
+    var $counterAllIn = $('counter-allin');
+    var $counterBaby = $('counter-baby');
+    var $counterLaunch = $('counter-launch');
+    var $counterLaunchItem = $('counter-launch-item');
+    var $counterLaunchSep = $('counter-launch-sep');
+
+    function daysSince(startDate) {
+        var now = new Date();
+        now.setHours(0, 0, 0, 0);
+        var start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        return Math.floor((now - start) / 86400000);
+    }
+
+    function formatNumber(n) {
+        return n.toLocaleString('en-US');
+    }
+
+    function updateLifeCounters() {
+        $counterAlive.textContent = formatNumber(daysSince(LIFE_DATES.alive));
+        $counterAllIn.textContent = formatNumber(daysSince(LIFE_DATES.allIn));
+        $counterBaby.textContent = formatNumber(daysSince(LIFE_DATES.baby));
+
+        if (LIFE_DATES.launch) {
+            $counterLaunch.textContent = formatNumber(daysSince(LIFE_DATES.launch));
+            $counterLaunchItem.style.display = '';
+            $counterLaunchSep.style.display = '';
+        }
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────
@@ -714,6 +754,8 @@
 
     updateClock();
     setInterval(updateClock, CLOCK_INTERVAL);
+    updateLifeCounters();
+    setInterval(updateLifeCounters, POLL_INTERVAL);
     fetchState();
     setInterval(fetchState, POLL_INTERVAL);
     loadBackgroundImage();
