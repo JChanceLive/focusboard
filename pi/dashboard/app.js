@@ -8,7 +8,7 @@
     const POLL_INTERVAL = 10000;
     const CLOCK_INTERVAL = 1000;
     const OFFLINE_THRESHOLD = 5 * 60 * 1000;
-    const NIGHT_START_HOUR = 21;
+    const NIGHT_START_HOUR = 18;
     const NIGHT_END_HOUR = 5;
     const BG_ROTATE_INTERVAL = 30 * 60 * 1000; // rotate bg image every 30 min
 
