@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>FocusBoard</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
     <!-- Background nature image -->
@@ -25,12 +25,10 @@
         <div id="night-countdown" class="night-countdown"></div>
     </section>
 
-    <!-- Clock + Weather + Date Header -->
-    <header id="header" class="header">
-        <span id="clock" class="clock"></span>
-        <div id="weather-widget" class="weather-widget"></div>
+    <!-- Date (top center, minimal) -->
+    <div id="date-bar" class="date-bar">
         <span id="date-label" class="date-label"></span>
-    </header>
+    </div>
 
     <!-- Offline Banner (below header) -->
     <div id="offline-banner" class="offline-banner hidden">
@@ -39,7 +37,9 @@
 
     <!-- Current Block (Hero) -->
     <section id="current-block" class="current-block">
+        <div id="hero-weather" class="hero-weather"></div>
         <div id="current-icon" class="current-icon"></div>
+        <div id="hero-clock" class="hero-clock"></div>
         <div id="current-block-name" class="current-block-name"></div>
         <div id="current-block-sublabel" class="current-block-sublabel"></div>
         <div class="current-block-divider"></div>

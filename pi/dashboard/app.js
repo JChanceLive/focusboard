@@ -10,7 +10,7 @@
     const OFFLINE_THRESHOLD = 5 * 60 * 1000;
     const NIGHT_START_HOUR = 18;
     const NIGHT_END_HOUR = 5;
-    const BG_ROTATE_INTERVAL = 30 * 60 * 1000; // rotate bg image every 30 min
+    const BG_ROTATE_INTERVAL = 1 * 60 * 1000; // rotate bg image every 1 min
 
     let lastState = null;
     let lastGeneratedAt = null;
@@ -20,9 +20,9 @@
     // ─── DOM refs ──────────────────────────────────────────────────────
 
     const $ = (id) => document.getElementById(id);
-    const $clock = $('clock');
+    const $heroClock = $('hero-clock');
     const $dateLabel = $('date-label');
-    const $weatherWidget = $('weather-widget');
+    const $heroWeather = $('hero-weather');
     const $offlineBanner = $('offline-banner');
     const $offlineTime = $('offline-time');
     const $currentBlock = $('current-block');
@@ -63,7 +63,7 @@
     function updateClock() {
         var now = new Date();
         var timeStr = formatClockString(now);
-        $clock.textContent = timeStr;
+        $heroClock.textContent = timeStr;
 
         if (isNightTime()) {
             if (!nightModeActive) enterNightMode();
@@ -219,8 +219,21 @@
 
     // ─── Render ────────────────────────────────────────────────────────
 
+    function formatShortDate(isoDate) {
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        if (isoDate) {
+            var parts = isoDate.split('-');
+            var month = parseInt(parts[1], 10) - 1;
+            var day = parseInt(parts[2], 10);
+            return months[month] + ' ' + day;
+        }
+        var now = new Date();
+        return months[now.getMonth()] + ' ' + now.getDate();
+    }
+
     function render(state) {
-        $dateLabel.textContent = state.day_label || '';
+        $dateLabel.textContent = formatShortDate(state.date) || state.day_label || '';
 
         // During night mode, only update countdown data (overlay is handled by lifecycle)
         if (nightModeActive) {
@@ -268,7 +281,11 @@
         $currentBlockName.textContent = now.block || '';
 
         // Sublabel (e.g., "CREATION" label distinct from block name like "Creation")
-        if (now.label && now.label !== now.block.toUpperCase()) {
+        // Hide if label matches block name OR task name (case-insensitive)
+        var labelUpper = (now.label || '').toUpperCase();
+        var taskUpper = (now.task || '').toUpperCase();
+        var blockUpper = (now.block || '').toUpperCase();
+        if (now.label && labelUpper !== blockUpper && labelUpper !== taskUpper) {
             $currentSublabel.textContent = now.label;
             $currentSublabel.style.display = '';
         } else {
@@ -534,14 +551,34 @@
 
     function renderWeather(weather) {
         if (!weather || !weather.temp) {
-            $weatherWidget.innerHTML = '';
+            $heroWeather.innerHTML = '';
             return;
         }
 
-        $weatherWidget.innerHTML =
+        var html = '<div class="weather-main">' +
             '<span class="weather-icon">' + (weather.icon_char || '\u2600') + '</span>' +
             '<span class="weather-temp">' + weather.temp + '\u00B0</span>' +
-            '<span class="weather-condition">' + esc(weather.condition || '') + '</span>';
+            '</div>';
+
+        // Detail row: feels like, high/low, humidity
+        var details = [];
+        if (weather.feels_like) details.push('Feels ' + weather.feels_like + '\u00B0');
+        if (weather.high && weather.low) details.push('H:' + weather.high + '\u00B0 L:' + weather.low + '\u00B0');
+        if (weather.humidity) details.push(weather.humidity + '% humidity');
+
+        if (details.length) {
+            html += '<div class="weather-details">';
+            for (var i = 0; i < details.length; i++) {
+                html += '<span>' + esc(details[i]) + '</span>';
+            }
+            html += '</div>';
+        }
+
+        if (weather.description) {
+            html += '<div class="weather-desc">' + esc(weather.description) + '</div>';
+        }
+
+        $heroWeather.innerHTML = html;
     }
 
     // ─── Keystones (with streaks) ────────────────────────────────────

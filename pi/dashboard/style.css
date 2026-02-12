@@ -19,7 +19,6 @@
     --block-color: #3498db;
 
     /* Layout */
-    --header-height: 70px;
     --footer-height: 50px;
     --sync-height: 36px;
     --side-padding: 36px;
@@ -72,12 +71,8 @@ body.night-mode .bottom-zone,
 body.night-mode .footer,
 body.night-mode .sync-status,
 body.night-mode .offline-banner,
-body.night-mode .weather-widget {
+body.night-mode .date-bar {
     display: none !important;
-}
-
-body.night-mode .header {
-    opacity: 0;
 }
 
 /* Night mode: darken the background image */
@@ -186,61 +181,78 @@ body.night-mode .night-overlay {
 }
 
 /* Content layers above bg-image */
-.header, .current-block, .bottom-zone, .footer, .sync-status, .offline-banner {
+.date-bar, .current-block, .bottom-zone, .footer, .sync-status, .offline-banner {
     position: relative;
     z-index: 1;
 }
 
-/* ─── Header (3-column: clock | weather | date) ─── */
+/* ─── Date Bar (top center, minimal) ─── */
 
-.header {
-    height: var(--header-height);
+.date-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 var(--side-padding);
-    border-bottom: 1px solid var(--bg-elevated);
+    justify-content: center;
+    padding: 20px 0 8px;
     flex-shrink: 0;
-}
-
-.clock {
-    font-size: 32px;
-    font-weight: 300;
-    letter-spacing: 2px;
-    color: var(--text-primary);
-    flex-shrink: 0;
-}
-
-.weather-widget {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 20px;
-    color: var(--text-secondary);
-    font-weight: 300;
-}
-
-.weather-widget .weather-icon {
-    font-size: 26px;
-}
-
-.weather-widget .weather-temp {
-    font-size: 24px;
-    font-weight: 400;
-    color: var(--text-primary);
-}
-
-.weather-widget .weather-condition {
-    font-size: 16px;
-    color: var(--text-muted);
-    text-transform: capitalize;
 }
 
 .date-label {
-    font-size: 26px;
+    font-size: 34px;
     font-weight: 300;
     color: var(--text-secondary);
-    flex-shrink: 0;
+    letter-spacing: 3px;
+}
+
+/* ─── Hero Weather (above icon in hero section) ─── */
+
+.hero-weather {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.hero-weather .weather-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hero-weather .weather-icon {
+    font-size: 48px;
+}
+
+.hero-weather .weather-temp {
+    font-size: 46px;
+    font-weight: 300;
+    color: var(--text-primary);
+}
+
+.hero-weather .weather-details {
+    display: flex;
+    gap: 20px;
+    font-size: 18px;
+    color: #ffffff;
+    font-weight: 300;
+}
+
+.hero-weather .weather-desc {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: capitalize;
+    letter-spacing: 1px;
+}
+
+/* ─── Hero Clock (same size as block name, above it) ─── */
+
+.hero-clock {
+    font-size: 56px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: var(--text-primary);
+    line-height: 1.1;
+    margin-bottom: 2px;
 }
 
 /* ─── Current Block (Hero) ─── */
@@ -332,20 +344,22 @@ body.night-mode .night-overlay {
     letter-spacing: 1px;
 }
 
-/* Stack details list */
+/* Stack details list (white, larger, left-aligned in centered container) */
 .current-details {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 5px;
+    align-items: flex-start;
+    gap: 6px;
     margin-top: 16px;
-    max-width: 90%;
+    width: auto;
+    max-width: 80%;
+    align-self: center;
 }
 
 .current-details .detail-item {
-    font-size: 19px;
+    font-size: 22px;
     font-weight: 300;
-    color: var(--text-muted);
+    color: #ffffff;
     letter-spacing: 0.5px;
 }
 
