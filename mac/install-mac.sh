@@ -13,6 +13,11 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PLIST_TEMPLATE="$SCRIPT_DIR/com.focusboard.sync.plist.template"
 PLIST_DEST="$HOME/Library/LaunchAgents/com.focusboard.sync.plist"
 PYTHON3_PATH="$(which python3)"
+PI_USER="${FOCUSBOARD_USER:-}"
+if [ -z "$PI_USER" ]; then
+    read -rp "Pi username [$(whoami)]: " PI_USER
+    PI_USER="${PI_USER:-$(whoami)}"
+fi
 CONFIG_DIR="$HOME/.claude/pi"
 CONFIG_FILE="$CONFIG_DIR/focusboard-config.json"
 
@@ -47,6 +52,7 @@ python3 -c "import requests, yaml" 2>/dev/null || {
 sed -e "s|__HOME__|$HOME|g" \
     -e "s|__PROJECT__|$PROJECT_DIR|g" \
     -e "s|__PYTHON3__|$PYTHON3_PATH|g" \
+    -e "s|__PI_USER__|$PI_USER|g" \
     "$PLIST_TEMPLATE" > "$PLIST_DEST"
 
 # Load the job (unload first if exists)

@@ -29,6 +29,8 @@
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin</string>
         <key>HOME</key>
         <string>__HOME__</string>
+        <key>FOCUSBOARD_USER</key>
+        <string>__PI_USER__</string>
     </dict>
 </dict>
 </plist>
