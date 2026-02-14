@@ -18,6 +18,12 @@ if [ -z "$PI_USER" ]; then
     read -rp "Pi username [$(whoami)]: " PI_USER
     PI_USER="${PI_USER:-$(whoami)}"
 fi
+PI_HOST_DEFAULT="${PI_USER}@focusboard.local"
+PI_HOST="${FOCUSBOARD_HOST:-}"
+if [ -z "$PI_HOST" ]; then
+    read -rp "Pi host [$PI_HOST_DEFAULT]: " PI_HOST
+    PI_HOST="${PI_HOST:-$PI_HOST_DEFAULT}"
+fi
 CONFIG_DIR="$HOME/.claude/pi"
 CONFIG_FILE="$CONFIG_DIR/focusboard-config.json"
 
@@ -53,6 +59,7 @@ sed -e "s|__HOME__|$HOME|g" \
     -e "s|__PROJECT__|$PROJECT_DIR|g" \
     -e "s|__PYTHON3__|$PYTHON3_PATH|g" \
     -e "s|__PI_USER__|$PI_USER|g" \
+    -e "s|__PI_HOST__|$PI_HOST|g" \
     "$PLIST_TEMPLATE" > "$PLIST_DEST"
 
 # Load the job (unload first if exists)

@@ -31,6 +31,8 @@
         <string>__HOME__</string>
         <key>FOCUSBOARD_USER</key>
         <string>__PI_USER__</string>
+        <key>FOCUSBOARD_HOST</key>
+        <string>__PI_HOST__</string>
     </dict>
 </dict>
 </plist>
