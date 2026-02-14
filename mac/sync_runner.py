@@ -13,8 +13,9 @@ from datetime import datetime
 SCRIPT_DIR = Path(__file__).parent
 STATE_DIR = Path.home() / ".claude" / "pi"
 STATE_FILE = STATE_DIR / "state.json"
-PI_HOST = os.environ.get("FOCUSBOARD_HOST", "jopi@10.0.0.58")
-PI_DEST = "/home/jopi/focusboard/dashboard/state.json"
+_PI_USER = os.environ.get("FOCUSBOARD_USER", os.getlogin())
+PI_HOST = os.environ.get("FOCUSBOARD_HOST", f"{_PI_USER}@focusboard.local")
+PI_DEST = f"/home/{_PI_USER}/focusboard/dashboard/state.json"
 LOG_FILE = STATE_DIR / "sync.log"
 
 

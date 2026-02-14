@@ -4,8 +4,8 @@ After=graphical.target
 Wants=graphical.target
 
 [Service]
-User=jopi
-ExecStart=/bin/bash /home/jopi/focusboard/scripts/chromium-kiosk.sh
+User=__USER__
+ExecStart=/bin/bash /home/__USER__/focusboard/scripts/chromium-kiosk.sh
 Restart=on-failure
 RestartSec=5
 

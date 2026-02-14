@@ -22,6 +22,9 @@ focusboard-config.json
 # Allow the safe example template
 !focusboard-config.example.json
 
+# Generated plist (contains user-specific paths)
+mac/com.focusboard.sync.plist
+
 # Editor
 .vscode/
 *.swp

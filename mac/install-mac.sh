@@ -10,8 +10,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PLIST_SRC="$SCRIPT_DIR/com.focusboard.sync.plist"
+PLIST_TEMPLATE="$SCRIPT_DIR/com.focusboard.sync.plist.template"
 PLIST_DEST="$HOME/Library/LaunchAgents/com.focusboard.sync.plist"
+PYTHON3_PATH="$(which python3)"
 CONFIG_DIR="$HOME/.claude/pi"
 CONFIG_FILE="$CONFIG_DIR/focusboard-config.json"
 
@@ -42,8 +43,11 @@ python3 -c "import requests, yaml" 2>/dev/null || {
     pip3 install requests pyyaml
 }
 
-# Copy plist
-cp "$PLIST_SRC" "$PLIST_DEST"
+# Generate plist from template with user-specific paths
+sed -e "s|__HOME__|$HOME|g" \
+    -e "s|__PROJECT__|$PROJECT_DIR|g" \
+    -e "s|__PYTHON3__|$PYTHON3_PATH|g" \
+    "$PLIST_TEMPLATE" > "$PLIST_DEST"
 
 # Load the job (unload first if exists)
 launchctl unload "$PLIST_DEST" 2>/dev/null || true

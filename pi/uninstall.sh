@@ -9,5 +9,6 @@ sudo systemctl disable focusboard.service 2>/dev/null || true
 sudo rm -f /etc/systemd/system/focusboard.service
 sudo systemctl daemon-reload
 
-echo "Service removed. Dashboard files remain at /home/jopi/focusboard/"
-echo "To fully remove: rm -rf /home/jopi/focusboard"
+PI_USER="${SUDO_USER:-$(whoami)}"
+echo "Service removed. Dashboard files remain at /home/$PI_USER/focusboard/"
+echo "To fully remove: rm -rf /home/$PI_USER/focusboard"

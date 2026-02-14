@@ -26,20 +26,20 @@ state.json ──── scp ────────────►  dashboard/s
 
 ### 1. Pi Setup
 
-Flash Raspberry Pi OS (with desktop) to SD card. Set hostname `focusboard`, user `jopi`. Enable SSH.
+Flash Raspberry Pi OS (with desktop) to SD card. Set hostname `focusboard`, create your user. Enable SSH.
 
 ```bash
 # From Mac - copy SSH keys
 ./setup-ssh.sh
 
 # Run Pi installer via SSH
-ssh jopi@focusboard.local 'bash -s' < pi/install.sh
+ssh youruser@focusboard.local 'bash -s' < pi/install.sh
 
 # Deploy dashboard
 ./deploy.sh
 
 # Reboot Pi
-ssh jopi@focusboard.local 'sudo reboot'
+ssh youruser@focusboard.local 'sudo reboot'
 ```
 
 ### 2. Mac Setup

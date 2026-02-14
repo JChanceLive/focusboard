@@ -18,7 +18,7 @@ wlr-randr --output HDMI-A-1 --transform 90 2>/dev/null || true
 sleep 3
 
 # Disable Chromium crash recovery popup
-for prefs in /home/jopi/.config/chromium/Default/Preferences; do
+for prefs in "$HOME/.config/chromium/Default/Preferences"; do
     if [ -f "$prefs" ]; then
         sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' "$prefs" 2>/dev/null
         sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' "$prefs" 2>/dev/null

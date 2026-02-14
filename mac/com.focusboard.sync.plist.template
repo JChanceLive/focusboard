@@ -7,8 +7,8 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/homebrew/bin/python3</string>
-        <string>/Users/josiahlachance/Documents/Projects/Claude/terminal/focusboard/mac/sync_runner.py</string>
+        <string>__PYTHON3__</string>
+        <string>__PROJECT__/mac/sync_runner.py</string>
     </array>
 
     <key>StartInterval</key>
@@ -18,17 +18,17 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>/Users/josiahlachance/.claude/pi/launchd-stdout.log</string>
+    <string>__HOME__/.claude/pi/launchd-stdout.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/josiahlachance/.claude/pi/launchd-stderr.log</string>
+    <string>__HOME__/.claude/pi/launchd-stderr.log</string>
 
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin</string>
         <key>HOME</key>
-        <string>/Users/josiahlachance</string>
+        <string>__HOME__</string>
     </dict>
 </dict>
 </plist>

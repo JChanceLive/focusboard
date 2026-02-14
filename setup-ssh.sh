@@ -4,7 +4,7 @@
 set -euo pipefail
 
 PI_HOST="focusboard.local"
-PI_USER="jopi"
+PI_USER="${1:-$(whoami)}"
 
 echo "Setting up SSH keys for $PI_USER@$PI_HOST..."
 

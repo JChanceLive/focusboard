@@ -1,6 +1,6 @@
 #!/bin/bash
 # FocusBoard Pi Setup - Complete install for Raspberry Pi
-# Run on the Pi via SSH: ssh jopi@focusboard.local 'bash -s' < pi/install.sh
+# Run on the Pi via SSH: ssh youruser@focusboard.local 'bash -s' < pi/install.sh
 #
 # Prerequisites:
 #   - Raspberry Pi OS (Bookworm or later recommended)
@@ -17,7 +17,7 @@
 #   7. Enables auto-login
 set -euo pipefail
 
-PI_USER="${SUDO_USER:-jopi}"
+PI_USER="${SUDO_USER:-$(whoami)}"
 PI_HOME="/home/$PI_USER"
 FB_DIR="$PI_HOME/focusboard"
 
@@ -107,9 +107,9 @@ cat > "$PI_HOME/.config/lxsession/LXDE-pi/autostart" << 'AUTOSTART'
 @unclutter -idle 0.5 -root
 AUTOSTART
 
-# Install systemd service
+# Install systemd service (substitute username)
 echo "[6/7] Installing systemd service..."
-sudo cp "$FB_DIR/config/focusboard.service" /etc/systemd/system/
+sed "s|__USER__|$PI_USER|g" "$FB_DIR/config/focusboard.service" | sudo tee /etc/systemd/system/focusboard.service > /dev/null
 sudo systemctl daemon-reload
 sudo systemctl enable focusboard.service
 

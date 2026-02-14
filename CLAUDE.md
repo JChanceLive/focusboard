@@ -31,12 +31,12 @@ Mac (generate_state.py) -> state.json -> scp -> Pi (Chromium kiosk)
 
 ## state.json Output
 
-Written to `~/.claude/pi/state.json` then scp'd to `jopi@focusboard.local:/home/jopi/focusboard/dashboard/state.json`
+Written to `~/.claude/pi/state.json` then scp'd to `focusboard.local:/home/$USER/focusboard/dashboard/state.json`
 
 ## Pi Details
 
 - Hostname: `focusboard.local`
-- User: `jopi`
+- User: configured via `FOCUSBOARD_USER` env var (defaults to current user)
 - Display: Portrait 1080x1920
 - Chromium kiosk mode, auto-start via systemd
 
