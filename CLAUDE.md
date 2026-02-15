@@ -46,3 +46,4 @@ Written to `~/.claude/pi/state.json` then scp'd to `focusboard.local:/home/$USER
 - state.json is the ONLY data contract between Mac and Pi.
 - If scp fails, Pi shows last known data + offline banner.
 - Sequence > Time: current block = first unchecked, never auto-advance.
+- json.dumps MUST use `ensure_ascii=True` — external data sources (Google Calendar, weather API) can contain surrogate characters that crash UTF-8 encoding. JavaScript handles `\uXXXX` escapes natively.

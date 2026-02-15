@@ -803,7 +803,7 @@ def main():
         if idx + 1 < len(sys.argv):
             output_path = sys.argv[idx + 1]
 
-    json_str = json.dumps(state, indent=2, ensure_ascii=False)
+    json_str = json.dumps(state, indent=2, ensure_ascii=True)
 
     if output_path:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
