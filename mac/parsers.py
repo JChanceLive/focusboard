@@ -51,6 +51,12 @@ def parse_day_overview(content: str) -> list[dict]:
                 if file_ref in ("(no file)", "(browser)", "\u2014", "-"):
                     file_ref = ""
 
+                # Workout day rotation: A-DAY, B-DAY, V-DAY
+                if block_name in ("Workout", "Power Hour") and task == "(fixed)":
+                    day_of_year = datetime.now().timetuple().tm_yday
+                    workout_labels = ["A-DAY", "B-DAY", "V-DAY"]
+                    task = workout_labels[day_of_year % 3]
+
                 visual = BLOCK_VISUALS.get(block_name, DEFAULT_VISUAL)
                 block = {
                     "time": time_val,

@@ -33,7 +33,7 @@
             var item = document.createElement('span');
             item.className = 'cal-legend-item';
             item.innerHTML = '<span class="cal-legend-dot" style="background:' + esc(legend[i].color || '#3498db') + '"></span>' +
-                esc((legend[i].emoji || '') + ' ' + (legend[i].label || ''));
+                esc(legend[i].label || '');
             bar.appendChild(item);
         }
 
@@ -108,16 +108,21 @@
                 timeHtml = '<span class="cal-time">' + startTime + ' \u2013 ' + endTime + '</span>';
             }
 
-            var titlePrefix = calEmoji ? calEmoji + ' ' : '';
-            var titleStyle = calColor ? ' style="color:' + esc(calColor) + '"' : '';
+            var titleStyle = calColor ? 'color:' + esc(calColor) + ';' : '';
+            if (evt.bold) titleStyle += 'font-weight:700;';
+            titleStyle = titleStyle ? ' style="' + titleStyle + '"' : '';
 
             var locationHtml = evt.location
                 ? '<span class="cal-location">' + esc(evt.location) + '</span>'
                 : '';
 
+            var descHtml = evt.description
+                ? '<span class="cal-desc">' + esc(evt.description) + '</span>'
+                : '';
+
             card.innerHTML = timeHtml +
-                '<span class="cal-title"' + titleStyle + '>' + esc(titlePrefix + evt.title) + '</span>' +
-                locationHtml;
+                '<span class="cal-title"' + titleStyle + '>' + esc(evt.title) + '</span>' +
+                locationHtml + descHtml;
 
             $calendarList.appendChild(card);
         }

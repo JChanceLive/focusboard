@@ -82,12 +82,22 @@
                 ? '<s>' + esc(b.task) + '</s>'
                 : esc(b.task);
 
+            var detailsHtml = '';
+            if (b.details && b.details.length && b.type !== 'health' && (b.is_current || !b.done)) {
+                detailsHtml = '<div class="s-details">';
+                for (var d = 0; d < b.details.length; d++) {
+                    detailsHtml += '<span class="s-detail">' + esc(b.details[d]) + '</span>';
+                }
+                detailsHtml += '</div>';
+            }
+
             div.innerHTML =
                 '<span class="s-dot" style="background:' + (b.done ? '#555' : color) + '"></span>' +
                 '<span class="s-icon">' + icon + '</span>' +
                 '<span class="s-time">' + esc(b.time) + '</span>' +
                 '<span class="s-block" style="' + (b.is_current ? 'color:' + color : '') + '">' + esc(b.block) + '</span>' +
-                '<span class="s-task">' + taskText + '</span>';
+                '<span class="s-task">' + taskText + '</span>' +
+                detailsHtml;
 
             $scheduleList.appendChild(div);
         }

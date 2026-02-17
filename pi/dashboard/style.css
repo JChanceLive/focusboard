@@ -480,7 +480,30 @@ body.night-mode .night-overlay {
     font-size: 17px;
     line-height: 1.4;
     padding: 2px 0;
+    flex-wrap: wrap;
 }
+
+.s-details {
+    width: 100%;
+    padding-left: 52px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 4px;
+}
+
+.s-detail {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 300;
+    line-height: 1.3;
+}
+
+.schedule-item.current .s-detail {
+    color: var(--text-secondary);
+}
+
+.schedule-item.done .s-details { display: none; }
 
 .schedule-item .s-icon {
     width: 18px;
@@ -624,6 +647,17 @@ body.night-mode .night-overlay {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.cal-event .cal-desc {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .cal-event.all-day {

@@ -89,7 +89,7 @@ def fetch_google_calendar(config: dict) -> tuple[list[dict], list[dict]]:
         calendars = [DEFAULT_CALENDAR]
 
     try:
-        # Exchange refresh token for access token
+        # Get default access token
         token_resp = requests.post(
             "https://oauth2.googleapis.com/token",
             data={
@@ -101,7 +101,10 @@ def fetch_google_calendar(config: dict) -> tuple[list[dict], list[dict]]:
             timeout=10,
         )
         token_resp.raise_for_status()
-        access_token = token_resp.json()["access_token"]
+        default_access_token = token_resp.json()["access_token"]
+
+        # Cache for per-calendar access tokens (keyed by refresh_token)
+        token_cache = {refresh_token: default_access_token}
 
         # Fetch events: now through end of tomorrow
         now = datetime.now().astimezone()
@@ -116,7 +119,6 @@ def fetch_google_calendar(config: dict) -> tuple[list[dict], list[dict]]:
             "orderBy": "startTime",
             "maxResults": "20",
         }
-        headers = {"Authorization": f"Bearer {access_token}"}
 
         all_events = []
         for cal in calendars:
@@ -124,6 +126,28 @@ def fetch_google_calendar(config: dict) -> tuple[list[dict], list[dict]]:
             cal_label = cal.get("label", "")
             cal_emoji = cal.get("emoji", "")
             cal_color = cal.get("color", "#3498db")
+            cal_refresh = cal.get("refresh_token", refresh_token)
+
+            # Get or create access token for this calendar's account
+            if cal_refresh not in token_cache:
+                try:
+                    tr = requests.post(
+                        "https://oauth2.googleapis.com/token",
+                        data={
+                            "client_id": client_id,
+                            "client_secret": client_secret,
+                            "refresh_token": cal_refresh,
+                            "grant_type": "refresh_token",
+                        },
+                        timeout=10,
+                    )
+                    tr.raise_for_status()
+                    token_cache[cal_refresh] = tr.json()["access_token"]
+                except Exception as exc:
+                    logger.error("Token exchange failed for calendar '%s': %s", cal_label, exc)
+                    continue
+
+            headers = {"Authorization": f"Bearer {token_cache[cal_refresh]}"}
 
             try:
                 events_resp = requests.get(
@@ -139,16 +163,25 @@ def fetch_google_calendar(config: dict) -> tuple[list[dict], list[dict]]:
                     end = item.get("end", {})
                     all_day = "date" in start and "dateTime" not in start
 
-                    all_events.append({
+                    desc = item.get("description", "").strip()
+                    # Truncate long descriptions
+                    if len(desc) > 120:
+                        desc = desc[:117] + "..."
+
+                    event_data = {
                         "title": item.get("summary", "(No title)"),
                         "start": start.get("dateTime", start.get("date", "")),
                         "end": end.get("dateTime", end.get("date", "")),
                         "all_day": all_day,
                         "location": item.get("location", ""),
+                        "description": desc,
                         "calendar_label": cal_label,
                         "calendar_emoji": cal_emoji,
                         "calendar_color": cal_color,
-                    })
+                    }
+                    if cal.get("bold"):
+                        event_data["bold"] = True
+                    all_events.append(event_data)
             except Exception as exc:
                 logger.error("Calendar fetch failed for '%s': %s", cal_id, exc)
                 # Continue with other calendars
