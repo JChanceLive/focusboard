@@ -48,6 +48,7 @@ def generate_state() -> dict:
 
     # Handle missing TODAY.md
     if not today_content:
+        cal_events, cal_legend = fetch_google_calendar(config)
         return {
             "generated_at": now.isoformat(),
             "date": now.strftime("%Y-%m-%d"),
@@ -62,7 +63,8 @@ def generate_state() -> dict:
             },
             "recording_ready": {"cc": 0, "pioneers": 0, "ha": 0, "zendo": 0, "total": 0},
             "quote": get_quote(philosophy_content),
-            "calendar": fetch_google_calendar(config),
+            "calendar": cal_events,
+            "calendar_legend": cal_legend,
             "weather": fetch_weather(config),
             "meta": {"sync_version": 2, "no_schedule": True},
         }
@@ -142,7 +144,7 @@ def generate_state() -> dict:
     quote = get_quote(philosophy_content)
 
     # Fetch external data
-    calendar_events = fetch_google_calendar(config)
+    calendar_events, calendar_legend = fetch_google_calendar(config)
     weather = fetch_weather(config)
 
     # Update keystone streaks (enriches keystones in-place with streak/best_streak)
@@ -165,6 +167,7 @@ def generate_state() -> dict:
         "recording_ready": recording_ready,
         "quote": quote,
         "calendar": calendar_events,
+        "calendar_legend": calendar_legend,
         "weather": weather,
         "meta": {
             "sync_version": 2,

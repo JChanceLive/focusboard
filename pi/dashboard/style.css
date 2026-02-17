@@ -636,6 +636,30 @@ body.night-mode .night-overlay {
     padding: 12px 0;
 }
 
+/* Calendar legend (multi-calendar) */
+.cal-legend {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.cal-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cal-legend-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
 /* ─── Keystones (inline in header) ─── */
 
 .header-keystones .ks-label {

@@ -51,16 +51,26 @@ def _write_cache(name: str, payload) -> None:
         pass  # Non-critical
 
 
-def fetch_google_calendar(config: dict) -> list[dict]:
-    """Fetch upcoming events from Google Calendar REST API.
+DEFAULT_CALENDAR = {"id": "primary", "label": "Personal", "emoji": "\U0001f535", "color": "#3498db"}
 
-    Uses OAuth2 refresh token flow. Returns [] on any failure.
+
+def fetch_google_calendar(config: dict) -> tuple[list[dict], list[dict]]:
+    """Fetch upcoming events from multiple Google Calendars.
+
+    Uses OAuth2 refresh token flow. Returns (events, legend).
+    Supports up to 3 calendars via config 'calendars' array.
+    Backward compatible: if no 'calendars' array, fetches from 'primary'.
     Caches results for 15 minutes.
     """
     cached = _read_cache("calendar")
     if cached is not None:
         logger.info("Using cached calendar data")
-        return cached
+        if isinstance(cached, list):
+            # Old cache format (pre-multi-calendar): plain event list
+            return cached, []
+        events = cached.get("events", [])
+        legend = cached.get("legend", [])
+        return events, legend
 
     gc = config.get("google_calendar", {})
     client_id = gc.get("client_id", "")
@@ -68,10 +78,15 @@ def fetch_google_calendar(config: dict) -> list[dict]:
     refresh_token = gc.get("refresh_token", "")
 
     if not all([client_id, client_secret, refresh_token]):
-        return []
+        return [], []
     # Skip placeholder values
     if client_id == "FROM_ZSHRC":
-        return []
+        return [], []
+
+    # Determine calendars to fetch (max 3)
+    calendars = gc.get("calendars", [DEFAULT_CALENDAR])[:3]
+    if not calendars:
+        calendars = [DEFAULT_CALENDAR]
 
     try:
         # Exchange refresh token for access token
@@ -103,36 +118,53 @@ def fetch_google_calendar(config: dict) -> list[dict]:
         }
         headers = {"Authorization": f"Bearer {access_token}"}
 
-        events_resp = requests.get(
-            "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-            params=params,
-            headers=headers,
-            timeout=10,
-        )
-        events_resp.raise_for_status()
+        all_events = []
+        for cal in calendars:
+            cal_id = cal.get("id", "primary")
+            cal_label = cal.get("label", "")
+            cal_emoji = cal.get("emoji", "")
+            cal_color = cal.get("color", "#3498db")
 
-        events = []
-        for item in events_resp.json().get("items", []):
-            start = item.get("start", {})
-            end = item.get("end", {})
+            try:
+                events_resp = requests.get(
+                    f"https://www.googleapis.com/calendar/v3/calendars/{cal_id}/events",
+                    params=params,
+                    headers=headers,
+                    timeout=10,
+                )
+                events_resp.raise_for_status()
 
-            # All-day events use 'date', timed events use 'dateTime'
-            all_day = "date" in start and "dateTime" not in start
+                for item in events_resp.json().get("items", []):
+                    start = item.get("start", {})
+                    end = item.get("end", {})
+                    all_day = "date" in start and "dateTime" not in start
 
-            events.append({
-                "title": item.get("summary", "(No title)"),
-                "start": start.get("dateTime", start.get("date", "")),
-                "end": end.get("dateTime", end.get("date", "")),
-                "all_day": all_day,
-                "location": item.get("location", ""),
-            })
+                    all_events.append({
+                        "title": item.get("summary", "(No title)"),
+                        "start": start.get("dateTime", start.get("date", "")),
+                        "end": end.get("dateTime", end.get("date", "")),
+                        "all_day": all_day,
+                        "location": item.get("location", ""),
+                        "calendar_label": cal_label,
+                        "calendar_emoji": cal_emoji,
+                        "calendar_color": cal_color,
+                    })
+            except Exception as exc:
+                logger.error("Calendar fetch failed for '%s': %s", cal_id, exc)
+                # Continue with other calendars
 
-        _write_cache("calendar", events)
-        return events
+        # Sort merged events by start time
+        all_events.sort(key=lambda e: e.get("start", ""))
+
+        # Build legend
+        legend = [{"label": c.get("label", ""), "emoji": c.get("emoji", ""), "color": c.get("color", "#3498db")} for c in calendars]
+
+        _write_cache("calendar", {"events": all_events, "legend": legend})
+        return all_events, legend
 
     except Exception as exc:
         logger.error("Google Calendar fetch failed: %s", exc)
-        return []
+        return [], []
 
 
 def fetch_weather(config: dict) -> dict:

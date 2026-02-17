@@ -153,7 +153,7 @@
         }
 
         FocusBoard.renderSchedule(state.blocks || []);
-        FocusBoard.renderCalendar(state.calendar || []);
+        FocusBoard.renderCalendar(state.calendar || [], state.calendar_legend || []);
         FocusBoard.renderWeather(state.weather || {});
         FocusBoard.renderKeystones(state.keystones || []);
     }

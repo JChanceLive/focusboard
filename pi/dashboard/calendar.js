@@ -1,4 +1,4 @@
-// FocusBoard - Calendar panel rendering
+// FocusBoard - Calendar panel rendering (multi-calendar)
 (function () {
     'use strict';
 
@@ -19,8 +19,32 @@
         }
     }
 
-    function renderCalendar(events) {
+    function renderLegend(legend) {
+        var existing = document.getElementById('cal-legend');
+        if (existing) existing.remove();
+
+        if (!legend || legend.length <= 1) return;
+
+        var bar = document.createElement('div');
+        bar.id = 'cal-legend';
+        bar.className = 'cal-legend';
+
+        for (var i = 0; i < legend.length; i++) {
+            var item = document.createElement('span');
+            item.className = 'cal-legend-item';
+            item.innerHTML = '<span class="cal-legend-dot" style="background:' + esc(legend[i].color || '#3498db') + '"></span>' +
+                esc((legend[i].emoji || '') + ' ' + (legend[i].label || ''));
+            bar.appendChild(item);
+        }
+
+        // Insert before the event list
+        $calendarList.parentNode.insertBefore(bar, $calendarList);
+    }
+
+    function renderCalendar(events, legend) {
         $calendarList.innerHTML = '';
+
+        renderLegend(legend);
 
         if (!events || !events.length) {
             var empty = document.createElement('div');
@@ -42,6 +66,8 @@
             var evt = events[i];
             var startStr = evt.start || '';
             var eventDate = startStr.slice(0, 10);
+            var calColor = evt.calendar_color || '';
+            var calEmoji = evt.calendar_emoji || '';
 
             var groupLabel = '';
             if (eventDate === todayStr) {
@@ -68,6 +94,11 @@
             var card = document.createElement('div');
             card.className = 'cal-event' + (evt.all_day ? ' all-day' : '');
 
+            // Apply calendar color to left border
+            if (calColor) {
+                card.style.borderLeftColor = calColor;
+            }
+
             var timeHtml = '';
             if (evt.all_day) {
                 timeHtml = '<span class="cal-time">All day</span>';
@@ -77,12 +108,15 @@
                 timeHtml = '<span class="cal-time">' + startTime + ' \u2013 ' + endTime + '</span>';
             }
 
+            var titlePrefix = calEmoji ? calEmoji + ' ' : '';
+            var titleStyle = calColor ? ' style="color:' + esc(calColor) + '"' : '';
+
             var locationHtml = evt.location
                 ? '<span class="cal-location">' + esc(evt.location) + '</span>'
                 : '';
 
             card.innerHTML = timeHtml +
-                '<span class="cal-title">' + esc(evt.title) + '</span>' +
+                '<span class="cal-title"' + titleStyle + '>' + esc(titlePrefix + evt.title) + '</span>' +
                 locationHtml;
 
             $calendarList.appendChild(card);
