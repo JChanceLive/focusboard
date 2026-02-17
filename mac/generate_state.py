@@ -16,13 +16,14 @@ from datetime import datetime
 from pathlib import Path
 
 from config import (
-    TODAY_PATH, FOCUS_PATH, KEYSTONES_PATH, PHILOSOPHY_PATH, load_config,
+    TODAY_PATH, FOCUS_PATH, KEYSTONES_PATH, PHILOSOPHY_PATH, VAULT_ACTIVE,
+    load_config,
 )
 from utils import read_file, get_quote
 from parsers import (
     parse_day_overview, parse_block_tracker, parse_recording_ready,
     parse_done_today, parse_date_label, parse_focus, parse_keystones_yaml,
-    extract_sop_tasks, match_keystones_to_blocks,
+    extract_sop_tasks, match_keystones_to_blocks, parse_backlog_next,
 )
 from api import fetch_google_calendar, fetch_weather, load_and_update_streaks
 from log import get_logger
@@ -46,6 +47,10 @@ def generate_state() -> dict:
     # Load config for API calls
     config = load_config()
 
+    # Parse backlog next item (independent of TODAY.md)
+    tasks_path = VAULT_ACTIVE / "TASKS.md"
+    backlog_next = parse_backlog_next(tasks_path)
+
     # Handle missing TODAY.md
     if not today_content:
         cal_events, cal_legend = fetch_google_calendar(config)
@@ -62,6 +67,7 @@ def generate_state() -> dict:
                 "task": "", "action": "", "one_thing": "Not planned yet", "file": ""
             },
             "recording_ready": {"cc": 0, "pioneers": 0, "ha": 0, "zendo": 0, "total": 0},
+            "backlog_next": backlog_next,
             "quote": get_quote(philosophy_content),
             "calendar": cal_events,
             "calendar_legend": cal_legend,
@@ -165,6 +171,7 @@ def generate_state() -> dict:
         "done_today": done_today,
         "tomorrow_focus": tomorrow_focus,
         "recording_ready": recording_ready,
+        "backlog_next": backlog_next,
         "quote": quote,
         "calendar": calendar_events,
         "calendar_legend": calendar_legend,

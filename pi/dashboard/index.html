@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>FocusBoard</title>
-    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
     <!-- Background nature image -->
@@ -60,15 +60,21 @@
         <div id="current-details" class="current-details"></div>
     </section>
 
+    <!-- Quote Bar (between hero and bottom zone) -->
+    <div id="quote-bar" class="quote-bar" style="display:none"></div>
+
     <!-- Bottom Zone: Schedule (left) + Calendar (right) -->
     <section id="bottom-zone" class="bottom-zone">
         <div id="bottom-left" class="bottom-left">
             <div class="section-title">SCHEDULE</div>
             <div id="schedule-list" class="schedule-list"></div>
+            <div id="done-today" class="done-today" style="display:none"></div>
         </div>
         <div id="bottom-right" class="bottom-right">
             <div class="section-title">CALENDAR</div>
             <div id="calendar-list" class="calendar-list"></div>
+            <div id="recording-ready" class="recording-ready" style="display:none"></div>
+            <div id="backlog-next" class="backlog-next" style="display:none"></div>
         </div>
     </section>
 
@@ -87,6 +93,10 @@
     <script src="keystones.js"></script>
     <script src="counters.js"></script>
     <script src="background.js"></script>
+    <script src="done-today.js"></script>
+    <script src="quotes.js"></script>
+    <script src="recording-ready.js"></script>
+    <script src="backlog.js"></script>
     <script src="render.js"></script>
     <script src="app.js"></script>
 </body>

@@ -1,0 +1,9 @@
+[Unit]
+Description=FocusBoard Monitor On (Wake)
+
+[Service]
+Type=oneshot
+User=jopi
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=WAYLAND_DISPLAY=wayland-0
+ExecStart=/usr/bin/wlr-randr --output HDMI-A-1 --on --transform 90

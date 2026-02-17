@@ -757,3 +757,173 @@ body.night-mode .night-overlay {
     font-style: italic;
     line-height: 1.4;
 }
+
+/* ─── Quote Bar (between hero and bottom zone) ─── */
+
+.quote-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px var(--side-padding);
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.qb-text {
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text-muted);
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.qb-author {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+body.night-mode .quote-bar {
+    display: none !important;
+}
+
+/* ─── Done Today (below schedule in left column) ─── */
+
+.done-today {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.done-today-title {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.done-today-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--done);
+    background: rgba(46, 204, 113, 0.15);
+    padding: 1px 6px;
+    border-radius: 8px;
+    letter-spacing: 0;
+}
+
+.done-today-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 1px 0;
+}
+
+.dt-check {
+    color: var(--done);
+    font-size: 12px;
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.dt-text {
+    color: var(--text-muted);
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.done-today-more {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+    opacity: 0.6;
+    padding: 2px 0;
+}
+
+/* ─── Recording Ready (below calendar in right column) ─── */
+
+.recording-ready {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.rr-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+}
+
+.rr-brand {
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.rr-total {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--text-muted);
+}
+
+/* ─── BACKLOG Quick-Pull (below recording ready in right column) ─── */
+
+.backlog-next {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.bl-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #78909c;
+    flex-shrink: 0;
+}
+
+.bl-priority {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ff9800;
+    flex-shrink: 0;
+}
+
+.bl-task {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.bl-time {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}

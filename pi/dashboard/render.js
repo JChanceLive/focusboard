@@ -103,6 +103,13 @@
         var overlay = document.createElement('div');
         overlay.className = 'night-legacy-overlay';
 
+        // Use daily quote from quotes.json if available, fall back to state.quote
+        var dayQuote = FocusBoard.getDayCompleteQuote
+            ? FocusBoard.getDayCompleteQuote(state.date)
+            : null;
+        var quoteText = (dayQuote && dayQuote.text) ? dayQuote.text : (state.quote || '');
+        var quoteAuthor = (dayQuote && dayQuote.author) ? dayQuote.author : '';
+
         if (tf.task) {
             overlay.innerHTML =
                 '<div class="night-tomorrow-label">Tomorrow</div>' +
@@ -110,7 +117,8 @@
                 (tf.action ? '<div class="night-tomorrow-action">' + esc(tf.action) + '</div>' : '') +
                 (tf.one_thing ? '<div class="night-quote">"' + esc(tf.one_thing) + '"</div>' : '');
         } else {
-            overlay.innerHTML = '<div class="night-quote">"' + esc(state.quote || '') + '"</div>';
+            overlay.innerHTML = '<div class="night-quote">\u201C' + esc(quoteText) + '\u201D</div>' +
+                (quoteAuthor ? '<div class="night-quote" style="font-size:18px;margin-top:8px">\u2014 ' + esc(quoteAuthor) + '</div>' : '');
         }
 
         $currentBlock.appendChild(overlay);
@@ -156,6 +164,10 @@
         FocusBoard.renderCalendar(state.calendar || [], state.calendar_legend || []);
         FocusBoard.renderWeather(state.weather || {});
         FocusBoard.renderKeystones(state.keystones || []);
+        FocusBoard.renderDoneToday(state.done_today || []);
+        FocusBoard.renderQuoteBar(state.date);
+        FocusBoard.renderRecordingReady(state.recording_ready || {});
+        FocusBoard.renderBacklog(state.backlog_next || {});
     }
 
     FocusBoard.render = render;

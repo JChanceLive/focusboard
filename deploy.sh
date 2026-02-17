@@ -27,9 +27,9 @@ scp -o ConnectTimeout=5 \
 # Make scripts executable
 ssh "$PI_HOST" "chmod +x $PI_BASE/scripts/*.sh"
 
-# Deploy service file
+# Deploy config files (service, timers)
 scp -o ConnectTimeout=5 \
-    "$SCRIPT_DIR/pi/config/focusboard.service" \
+    "$SCRIPT_DIR/pi/config/"* \
     "$PI_HOST:$PI_BASE/config/"
 
 # NOTE: Pi uses nginx on port 8080 (not python http.server).
@@ -37,3 +37,6 @@ scp -o ConnectTimeout=5 \
 # Restart service after deploy to pick up changes:
 echo "Deployed. Restart focusboard service on Pi:"
 echo "  ssh $PI_HOST 'sudo systemctl restart focusboard'"
+echo ""
+echo "To install monitor power save timers (one-time):"
+echo "  ssh $PI_HOST 'sudo cp $PI_BASE/config/focusboard-monitor-*.service $PI_BASE/config/focusboard-monitor-*.timer /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now focusboard-monitor-off.timer focusboard-monitor-on.timer'"

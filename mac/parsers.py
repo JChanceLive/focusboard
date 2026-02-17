@@ -248,6 +248,34 @@ def extract_sop_tasks(blocks: list[dict]) -> list[dict]:
     return sop_tasks
 
 
+def parse_backlog_next(tasks_path) -> dict:
+    """Parse TASKS.md for the first unchecked P1 or P2 task."""
+    result = {"task": "", "priority": "", "time": "", "context": ""}
+    try:
+        content = tasks_path.read_text(encoding="utf-8")
+    except (FileNotFoundError, PermissionError):
+        return result
+
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("- [ ]"):
+            continue
+
+        # Match: - [ ] Task text [P1] (30m) #context @block
+        match = re.match(
+            r"- \[ \]\s+(.+?)\s+\[P([12])\]\s*(?:\((\w+)\))?\s*(?:#(\w+))?",
+            stripped,
+        )
+        if match:
+            result["task"] = match.group(1).strip()
+            result["priority"] = "P" + match.group(2)
+            result["time"] = match.group(3) or ""
+            result["context"] = match.group(4) or ""
+            break
+
+    return result
+
+
 def get_block_type(block_name: str) -> str:
     """Get block type from name."""
     return BLOCK_TYPES.get(block_name, "work")
