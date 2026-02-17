@@ -14,6 +14,16 @@
     var $currentDetails = FocusBoard.$('current-details');
     var $dateLabel = FocusBoard.$('date-label');
 
+    // Track previous block for transition detection
+    var prevBlockName = '';
+    var heroElements = [$currentIcon, $currentBlockName, $currentSublabel, $currentTask, $currentFile, $currentBadge, $currentBehind, $currentDetails];
+
+    function fadeHero(opacity) {
+        for (var i = 0; i < heroElements.length; i++) {
+            heroElements[i].style.opacity = opacity;
+        }
+    }
+
     function setBlockColor(color) {
         document.documentElement.style.setProperty('--block-color', color || '#3498db');
     }
@@ -21,7 +31,21 @@
     function renderCurrentBlock(state) {
         var now = state.now || {};
         var color = now.color || '#3498db';
+        var blockChanged = prevBlockName && prevBlockName !== (now.block || '');
+        prevBlockName = now.block || '';
 
+        if (blockChanged) {
+            fadeHero('0');
+            setTimeout(function () {
+                applyCurrentBlock(state, now, color);
+                fadeHero('1');
+            }, 500);
+        } else {
+            applyCurrentBlock(state, now, color);
+        }
+    }
+
+    function applyCurrentBlock(state, now, color) {
         setBlockColor(color);
         $currentBlock.className = 'current-block';
 
@@ -168,6 +192,10 @@
         FocusBoard.renderQuoteBar(state.date);
         FocusBoard.renderRecordingReady(state.recording_ready || {});
         FocusBoard.renderBacklog(state.backlog_next || {});
+        FocusBoard.renderTasks(state.tasks || {});
+        FocusBoard.renderReminders(state.reminders || {});
+        FocusBoard.renderDailyLog(state.daily_log || {});
+        FocusBoard.renderProgress(state.blocks || []);
     }
 
     FocusBoard.render = render;

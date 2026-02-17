@@ -98,6 +98,20 @@
             endMarker.innerHTML = '<span class="now-label">NOW</span><span class="now-line"></span>';
             $scheduleList.appendChild(endMarker);
         }
+
+        // Auto-scroll to current block
+        var currentEl = $scheduleList.querySelector('.schedule-item.current');
+        if (currentEl) {
+            var container = $scheduleList.parentElement;
+            var elTop = currentEl.offsetTop - container.offsetTop;
+            var elBottom = elTop + currentEl.offsetHeight;
+            var viewTop = container.scrollTop;
+            var viewBottom = viewTop + container.clientHeight;
+
+            if (elTop < viewTop || elBottom > viewBottom) {
+                currentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
     }
 
     // Expose time helpers (used by render.js for behind-schedule calc)

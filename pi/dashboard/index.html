@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>FocusBoard</title>
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
     <!-- Background nature image -->
@@ -40,6 +40,9 @@
         <div id="keystones-bar" class="header-keystones"></div>
     </div>
 
+    <!-- Progress Bar (below header) -->
+    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
     <!-- Offline Banner (below header) -->
     <div id="offline-banner" class="offline-banner hidden">
         MAC SYNC OFFLINE - LAST UPDATE <span id="offline-time"></span>
@@ -69,12 +72,15 @@
             <div class="section-title">SCHEDULE</div>
             <div id="schedule-list" class="schedule-list"></div>
             <div id="done-today" class="done-today" style="display:none"></div>
+            <div id="daily-log" class="daily-log" style="display:none"></div>
         </div>
         <div id="bottom-right" class="bottom-right">
             <div class="section-title">CALENDAR</div>
             <div id="calendar-list" class="calendar-list"></div>
             <div id="recording-ready" class="recording-ready" style="display:none"></div>
             <div id="backlog-next" class="backlog-next" style="display:none"></div>
+            <div id="tasks-summary" class="tasks-summary" style="display:none"></div>
+            <div id="reminders" class="reminders" style="display:none"></div>
         </div>
     </section>
 
@@ -97,6 +103,10 @@
     <script src="quotes.js"></script>
     <script src="recording-ready.js"></script>
     <script src="backlog.js"></script>
+    <script src="tasks.js"></script>
+    <script src="reminders.js"></script>
+    <script src="daily-log.js"></script>
+    <script src="progress.js"></script>
     <script src="render.js"></script>
     <script src="app.js"></script>
 </body>

@@ -69,7 +69,8 @@ body.night-mode .current-block,
 body.night-mode .bottom-zone,
 body.night-mode .sync-status,
 body.night-mode .offline-banner,
-body.night-mode .header-bar {
+body.night-mode .header-bar,
+body.night-mode .progress-bar {
     display: none !important;
 }
 
@@ -179,7 +180,7 @@ body.night-mode .night-overlay {
 }
 
 /* Content layers above bg-image */
-.header-bar, .current-block, .bottom-zone, .sync-status, .offline-banner {
+.header-bar, .progress-bar, .current-block, .bottom-zone, .sync-status, .offline-banner {
     position: relative;
     z-index: 1;
 }
@@ -926,4 +927,190 @@ body.night-mode .quote-bar {
     font-weight: 300;
     color: var(--text-muted);
     flex-shrink: 0;
+}
+
+/* ─── Day Progress Bar (below header) ─── */
+
+.progress-bar {
+    height: 4px;
+    background: var(--bg-elevated);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--block-color), var(--done));
+    transition: width 1s ease;
+    border-radius: 0 2px 2px 0;
+}
+
+body.night-mode .progress-bar {
+    display: none !important;
+}
+
+/* ─── Tasks Summary (below backlog in right column) ─── */
+
+.tasks-summary {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.tasks-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.task-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+}
+
+.task-p1 {
+    color: #ff5252;
+    background: rgba(255, 82, 82, 0.15);
+}
+
+.task-p2 {
+    color: #ff9800;
+    background: rgba(255, 152, 0, 0.15);
+}
+
+.task-qw {
+    color: var(--done);
+    background: rgba(46, 204, 113, 0.15);
+}
+
+.task-top-p1 {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ─── Reminders (below tasks in right column) ─── */
+
+.reminders {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.rem-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #42a5f5;
+    background: rgba(66, 165, 245, 0.15);
+    padding: 1px 6px;
+    border-radius: 8px;
+    letter-spacing: 0;
+}
+
+.rem-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 1px 0;
+}
+
+.rem-dot {
+    color: #42a5f5;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.rem-title {
+    color: var(--text-secondary);
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.rem-due {
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.rem-more {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+    opacity: 0.6;
+    padding: 2px 0;
+}
+
+/* ─── Daily LOG Highlights (below done-today in left column) ─── */
+
+.daily-log {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.log-section {
+    margin-bottom: 4px;
+}
+
+.log-win, .log-blocker {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    padding: 1px 0;
+}
+
+.log-icon {
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.log-win-icon {
+    color: var(--done);
+}
+
+.log-blocker-icon {
+    color: #e67e22;
+}
+
+.log-text {
+    color: var(--text-muted);
+    font-weight: 300;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ─── Smooth Hero Transitions ─── */
+
+.current-icon,
+.current-block-name,
+.current-block-sublabel,
+.current-task,
+.current-file,
+.current-badge,
+.current-behind,
+.current-details {
+    transition: opacity 0.5s ease;
 }

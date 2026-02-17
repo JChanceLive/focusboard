@@ -1,6 +1,8 @@
 """FocusBoard parsers for TODAY.md, keystones.yaml, and focus.md."""
 
 import re
+import shutil
+import subprocess
 import yaml
 from datetime import datetime
 
@@ -272,6 +274,178 @@ def parse_backlog_next(tasks_path) -> dict:
             result["time"] = match.group(3) or ""
             result["context"] = match.group(4) or ""
             break
+
+    return result
+
+
+def parse_task_counts(tasks_path, quick_wins_path) -> dict:
+    """Parse TASKS.md for P1/P2 counts and QUICK-WINS.md for quick-win count."""
+    result = {"p1_count": 0, "p2_count": 0, "quick_wins": 0, "top_p1": ""}
+
+    # Parse TASKS.md
+    try:
+        content = tasks_path.read_text(encoding="utf-8")
+    except (FileNotFoundError, PermissionError):
+        content = ""
+
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("- [ ]"):
+            continue
+        if "[P1]" in stripped:
+            result["p1_count"] += 1
+            if not result["top_p1"]:
+                # Extract task text before the [P1] tag
+                match = re.match(r"- \[ \]\s+(.+?)\s+\[P1\]", stripped)
+                if match:
+                    result["top_p1"] = match.group(1).strip()
+        elif "[P2]" in stripped:
+            result["p2_count"] += 1
+
+    # Parse QUICK-WINS.md
+    try:
+        qw_content = quick_wins_path.read_text(encoding="utf-8")
+    except (FileNotFoundError, PermissionError):
+        qw_content = ""
+
+    in_available = False
+    for line in qw_content.splitlines():
+        stripped = line.strip()
+        if stripped == "## Available":
+            in_available = True
+            continue
+        if in_available and stripped.startswith("## "):
+            break
+        if in_available and stripped.startswith("- [ ]"):
+            result["quick_wins"] += 1
+
+    return result
+
+
+def parse_daily_log(log_path) -> dict:
+    """Parse daily LOG for wins (checked items) and blockers."""
+    result = {"wins": [], "blockers": [], "entry_count": 0}
+
+    try:
+        content = log_path.read_text(encoding="utf-8")
+    except (FileNotFoundError, PermissionError):
+        return result
+
+    for line in content.splitlines():
+        stripped = line.strip()
+
+        # Count checked items as wins
+        if stripped.startswith("- [x]") or stripped.startswith("- [X]"):
+            text = re.sub(r"^- \[[xX]\]\s*", "", stripped).strip()
+            if text:
+                result["wins"].append(text)
+                result["entry_count"] += 1
+
+        # Count unchecked items toward entry count
+        elif stripped.startswith("- [ ]"):
+            result["entry_count"] += 1
+
+        # Blockers: list items containing BLOCKED, WAITING, or flagged
+        if stripped.startswith("- ") and any(kw in stripped.upper() for kw in ("BLOCKED", "WAITING ON", "BLOCKER")):
+            text = re.sub(r"^- \[[xX ]\]\s*", "", stripped).lstrip("- ").strip()
+            if text and text not in result["blockers"] and not text.endswith(":"):
+                result["blockers"].append(text)
+
+    # Cap at 5 wins for display
+    result["wins"] = result["wins"][:5]
+    result["blockers"] = result["blockers"][:3]
+
+    return result
+
+
+def fetch_reminders(lists: list[str] | None = None) -> dict:
+    """Fetch uncompleted reminders from Apple Reminders via osascript.
+
+    Args:
+        lists: List names to query (e.g. ["Groceries", "To-Do"]).
+               If None, fetches from all lists.
+
+    Returns:
+        {"count": N, "items": [{"title": ..., "list": ..., "due": ...}, ...]}
+    """
+    result = {"count": 0, "items": []}
+
+    if lists is None:
+        lists = ["Reminders"]  # Default list
+
+    for list_name in lists:
+        script = f'''
+        tell application "Reminders"
+            try
+                set theList to list "{list_name}"
+                set output to ""
+                repeat with r in (reminders of theList whose completed is false)
+                    set rName to name of r
+                    set rDue to ""
+                    try
+                        set rDue to (due date of r) as «class isot» as string
+                    end try
+                    set output to output & rName & "\\t" & rDue & "\\n"
+                end repeat
+                return output
+            on error
+                return ""
+            end try
+        end tell
+        '''
+        try:
+            proc = subprocess.run(
+                ["osascript", "-e", script],
+                capture_output=True, text=True, timeout=10,
+            )
+            if proc.returncode != 0:
+                logger.warning("Reminders fetch failed for '%s': %s", list_name, proc.stderr.strip())
+                continue
+
+            for line in proc.stdout.strip().splitlines():
+                if not line.strip():
+                    continue
+                parts = line.split("\t", 1)
+                title = parts[0].strip()
+                due = parts[1].strip() if len(parts) > 1 else ""
+                if title:
+                    result["items"].append({
+                        "title": title,
+                        "list": list_name,
+                        "due": due[:10] if due else "",  # YYYY-MM-DD
+                    })
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as exc:
+            logger.warning("Reminders osascript failed: %s", exc)
+
+    result["count"] = len(result["items"])
+    # Cap at 8 items for display
+    result["items"] = result["items"][:8]
+    return result
+
+
+def fetch_system_data(sync_log_path=None) -> dict:
+    """Collect system health data: disk space and sync log status."""
+    result = {"disk_free_pct": 100, "disk_warning": False, "sync_ok": True, "sync_age_min": 0}
+
+    # Disk space
+    try:
+        usage = shutil.disk_usage("/")
+        free_pct = round((usage.free / usage.total) * 100)
+        result["disk_free_pct"] = free_pct
+        result["disk_warning"] = free_pct < 10
+    except OSError:
+        pass
+
+    # Sync log health
+    if sync_log_path:
+        try:
+            import os
+            stat = os.stat(sync_log_path)
+            age_sec = datetime.now().timestamp() - stat.st_mtime
+            result["sync_age_min"] = round(age_sec / 60)
+            result["sync_ok"] = age_sec < 600  # < 10 min = healthy
+        except (FileNotFoundError, OSError):
+            result["sync_ok"] = False
 
     return result
 

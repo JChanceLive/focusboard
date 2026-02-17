@@ -13,6 +13,9 @@ KEYSTONES_PATH = Path.home() / ".claude" / "timekeeper" / "keystones.yaml"
 PHILOSOPHY_PATH = Path.home() / ".claude" / "timekeeper" / "philosophy.md"
 CONFIG_PATH = Path.home() / ".claude" / "pi" / "focusboard-config.json"
 STREAKS_PATH = Path.home() / ".claude" / "timekeeper" / "keystone_streaks.json"
+DAILY_LOG_PATH = Path.home() / ".claude" / "daily" / "current.md"
+QUICK_WINS_PATH = VAULT_ACTIVE / "QUICK-WINS.md"
+SYNC_LOG_PATH = Path.home() / ".claude" / "pi" / "sync.log"
 
 # Block type mapping derived from philosophy.md
 BLOCK_TYPES = {

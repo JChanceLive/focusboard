@@ -17,6 +17,7 @@ from pathlib import Path
 
 from config import (
     TODAY_PATH, FOCUS_PATH, KEYSTONES_PATH, PHILOSOPHY_PATH, VAULT_ACTIVE,
+    DAILY_LOG_PATH, QUICK_WINS_PATH, SYNC_LOG_PATH,
     load_config,
 )
 from utils import read_file, get_quote
@@ -24,6 +25,7 @@ from parsers import (
     parse_day_overview, parse_block_tracker, parse_recording_ready,
     parse_done_today, parse_date_label, parse_focus, parse_keystones_yaml,
     extract_sop_tasks, match_keystones_to_blocks, parse_backlog_next,
+    parse_task_counts, parse_daily_log, fetch_reminders, fetch_system_data,
 )
 from api import fetch_google_calendar, fetch_weather, load_and_update_streaks
 from log import get_logger
@@ -51,6 +53,12 @@ def generate_state() -> dict:
     tasks_path = VAULT_ACTIVE / "TASKS.md"
     backlog_next = parse_backlog_next(tasks_path)
 
+    # Parse task counts and additional data sources
+    task_counts = parse_task_counts(tasks_path, QUICK_WINS_PATH)
+    daily_log = parse_daily_log(DAILY_LOG_PATH)
+    reminders = fetch_reminders(config.get("reminders", {}).get("lists"))
+    system_data = fetch_system_data(SYNC_LOG_PATH)
+
     # Handle missing TODAY.md
     if not today_content:
         cal_events, cal_legend = fetch_google_calendar(config)
@@ -68,6 +76,10 @@ def generate_state() -> dict:
             },
             "recording_ready": {"cc": 0, "pioneers": 0, "ha": 0, "zendo": 0, "total": 0},
             "backlog_next": backlog_next,
+            "tasks": task_counts,
+            "daily_log": daily_log,
+            "reminders": reminders,
+            "system": system_data,
             "quote": get_quote(philosophy_content),
             "calendar": cal_events,
             "calendar_legend": cal_legend,
@@ -172,6 +184,10 @@ def generate_state() -> dict:
         "tomorrow_focus": tomorrow_focus,
         "recording_ready": recording_ready,
         "backlog_next": backlog_next,
+        "tasks": task_counts,
+        "daily_log": daily_log,
+        "reminders": reminders,
+        "system": system_data,
         "quote": quote,
         "calendar": calendar_events,
         "calendar_legend": calendar_legend,
