@@ -14,8 +14,8 @@ PI_BASE="/home/${PI_USER}/focusboard"
 
 echo "Deploying FocusBoard dashboard to ${PI_HOST}..."
 
-# Deploy dashboard files
-scp -o ConnectTimeout=5 \
+# Deploy dashboard files (recursive for subdirectories like videos/)
+scp -r -o ConnectTimeout=5 \
     "$SCRIPT_DIR/pi/dashboard/"* \
     "$PI_HOST:$PI_BASE/dashboard/"
 
