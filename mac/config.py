@@ -1,6 +1,7 @@
 """FocusBoard constants and configuration loading."""
 
 import json
+import logging
 from pathlib import Path
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
@@ -136,9 +137,29 @@ OWM_ICON_MAP = {
 }
 
 
+def _validate_config(config: dict) -> None:
+    """Log warnings for missing required config fields. Never raises."""
+    logger = logging.getLogger("focusboard.config")
+
+    checks = [
+        ("google_calendar.client_id", config.get("google_calendar", {}).get("client_id")),
+        ("google_calendar.client_secret", config.get("google_calendar", {}).get("client_secret")),
+        ("google_calendar.refresh_token", config.get("google_calendar", {}).get("refresh_token")),
+        ("weather.api_key", config.get("weather", {}).get("api_key")),
+    ]
+
+    placeholders = {"", "FROM_ZSHRC", "SIGNUP_AT_OPENWEATHERMAP"}
+
+    for field, value in checks:
+        if not value or value in placeholders:
+            logger.warning("Config missing or placeholder: %s", field)
+
+
 def load_config() -> dict:
-    """Load focusboard-config.json, return {} on failure."""
+    """Load focusboard-config.json, validate, return {} on failure."""
     try:
-        return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     except (FileNotFoundError, PermissionError, json.JSONDecodeError):
         return {}
+    _validate_config(config)
+    return config

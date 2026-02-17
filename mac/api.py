@@ -3,18 +3,65 @@
 import json
 import requests
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from config import OWM_ICON_MAP, STREAKS_PATH
 from log import get_logger
 
 logger = get_logger("api")
 
+# ─── Cache ────────────────────────────────────────────────────────────────────
+
+CACHE_DIR = Path.home() / ".claude" / "pi" / "cache"
+
+# TTLs in seconds
+CACHE_TTLS = {
+    "weather": 30 * 60,    # 30 minutes
+    "calendar": 15 * 60,   # 15 minutes
+}
+
+
+def _read_cache(name: str) -> dict | None:
+    """Read cached data if file exists and TTL hasn't expired. Returns None on miss."""
+    cache_file = CACHE_DIR / f"{name}.json"
+    try:
+        if not cache_file.exists():
+            return None
+        data = json.loads(cache_file.read_text(encoding="utf-8"))
+        cached_at = data.get("_cached_at", 0)
+        ttl = CACHE_TTLS.get(name, 300)
+        if datetime.now().timestamp() - cached_at > ttl:
+            return None  # expired
+        return data.get("payload")
+    except (json.JSONDecodeError, PermissionError, OSError):
+        return None
+
+
+def _write_cache(name: str, payload) -> None:
+    """Write data to cache file with timestamp."""
+    cache_file = CACHE_DIR / f"{name}.json"
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        cache_file.write_text(
+            json.dumps({"_cached_at": datetime.now().timestamp(), "payload": payload},
+                       ensure_ascii=True),
+            encoding="utf-8",
+        )
+    except (PermissionError, OSError):
+        pass  # Non-critical
+
 
 def fetch_google_calendar(config: dict) -> list[dict]:
     """Fetch upcoming events from Google Calendar REST API.
 
     Uses OAuth2 refresh token flow. Returns [] on any failure.
+    Caches results for 15 minutes.
     """
+    cached = _read_cache("calendar")
+    if cached is not None:
+        logger.info("Using cached calendar data")
+        return cached
+
     gc = config.get("google_calendar", {})
     client_id = gc.get("client_id", "")
     client_secret = gc.get("client_secret", "")
@@ -80,6 +127,7 @@ def fetch_google_calendar(config: dict) -> list[dict]:
                 "location": item.get("location", ""),
             })
 
+        _write_cache("calendar", events)
         return events
 
     except Exception as exc:
@@ -88,7 +136,15 @@ def fetch_google_calendar(config: dict) -> list[dict]:
 
 
 def fetch_weather(config: dict) -> dict:
-    """Fetch current weather from OpenWeatherMap. Returns {} on failure."""
+    """Fetch current weather from OpenWeatherMap. Returns {} on failure.
+
+    Caches results for 30 minutes.
+    """
+    cached = _read_cache("weather")
+    if cached is not None:
+        logger.info("Using cached weather data")
+        return cached
+
     wc = config.get("weather", {})
     api_key = wc.get("api_key", "")
     zip_code = wc.get("zip", "34465")
@@ -114,7 +170,7 @@ def fetch_weather(config: dict) -> dict:
         weather = data.get("weather", [{}])[0]
         icon_code = weather.get("icon", "01d")
 
-        return {
+        result = {
             "temp": round(main.get("temp", 0)),
             "feels_like": round(main.get("feels_like", 0)),
             "high": round(main.get("temp_max", 0)),
@@ -124,6 +180,8 @@ def fetch_weather(config: dict) -> dict:
             "icon_char": OWM_ICON_MAP.get(icon_code, "\u2600"),
             "humidity": main.get("humidity", 0),
         }
+        _write_cache("weather", result)
+        return result
 
     except Exception as exc:
         logger.error("Weather fetch failed: %s", exc)
