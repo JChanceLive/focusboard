@@ -350,29 +350,136 @@ body.night-mode .night-overlay {
     transition: color 0.5s ease;
 }
 
-.current-block-divider {
-    width: 160px;
-    height: 2px;
-    background: var(--bg-elevated);
-    margin: 18px 0;
-    border-radius: 2px;
+/* ─── Hero Info Card ─── */
+
+.hero-card {
+    margin-top: 18px;
+    padding: 16px 24px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--bg-elevated);
+    border-radius: 8px;
+    width: 70%;
+    max-width: 700px;
+    text-align: left;
 }
 
-.current-task {
-    font-size: 34px;
+.hero-card-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hero-field {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.hero-field-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    min-width: 44px;
+}
+
+.hero-field-value {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+.hero-field-value.small {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.hero-field-value.time {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--block-color);
+}
+
+.hero-card-details {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bg-elevated);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hero-card-details .detail-item {
+    font-size: 16px;
     font-weight: 300;
     color: var(--text-secondary);
-    text-align: center;
-    line-height: 1.3;
-    max-width: 90%;
+    letter-spacing: 0.5px;
 }
 
-.current-file {
-    font-size: 18px;
-    font-weight: 300;
+.hero-card-details .detail-item::before {
+    content: '\25AA';
+    margin-right: 8px;
+    color: var(--block-color);
+    transition: color 0.5s ease;
+}
+
+.hero-card-pipeline {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.hero-pipe-stat {
+    font-size: 13px;
+    font-weight: 400;
     color: var(--text-muted);
-    margin-top: 12px;
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.hero-pipe-val {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.hero-pipe-brand {
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.hero-card-legend {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hero-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hero-legend-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.hero-legend-label {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
 }
 
 .current-badge {
@@ -381,32 +488,6 @@ body.night-mode .night-overlay {
     color: var(--block-color);
     margin-top: 8px;
     letter-spacing: 1px;
-}
-
-/* Stack details list (white, larger, left-aligned in centered container) */
-.current-details {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    margin-top: 16px;
-    width: auto;
-    max-width: 80%;
-    align-self: center;
-}
-
-.current-details .detail-item {
-    font-size: 22px;
-    font-weight: 300;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-}
-
-.current-details .detail-item::before {
-    content: '\25AA';  /* ▪ */
-    margin-right: 10px;
-    color: var(--block-color);
-    transition: color 0.5s ease;
 }
 
 /* Day Complete state */
@@ -1148,3 +1229,108 @@ body.night-mode .progress-bar {
 .current-details {
     transition: opacity 0.5s ease;
 }
+
+/* ─── Habits Sidebar (right-aligned, below header) ─── */
+
+.habits-sidebar {
+    position: absolute;
+    top: 60px;
+    right: var(--side-padding);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    max-width: 180px;
+}
+
+body.night-mode .habits-sidebar {
+    display: none !important;
+}
+
+.habits-hdr-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.habits-hdr-count {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.habits-hdr-bar {
+    width: 56px;
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.habits-hdr-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.habits-hdr-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+}
+
+.habits-incomplete {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.habits-incomplete .habit-row {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.habits-incomplete .habit-row .habit-circle {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    opacity: 0.4;
+    flex-shrink: 0;
+}
+
+.habits-incomplete .habit-row .habit-streak {
+    margin-left: auto;
+    font-size: 10px;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+/* ─── Habit Dots on Schedule Items ─── */
+
+.s-habit-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+    background: var(--text-muted);
+    opacity: 0.5;
+    margin-left: -2px;
+    margin-right: 2px;
+}
+
+.s-habit-dot.done {
+    background: var(--done);
+    opacity: 1;
+}
+
+
