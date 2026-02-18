@@ -4,12 +4,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PI_USER="${FOCUSBOARD_USER:-}"
-if [ -z "$PI_USER" ]; then
-    read -rp "Pi username [$(whoami)]: " PI_USER
-    PI_USER="${PI_USER:-$(whoami)}"
-fi
-PI_HOST="${FOCUSBOARD_HOST:-${PI_USER}@focusboard.local}"
+# Use SSH config alias "focusboard" (defines HostName, User, IdentityFile)
+# Override with FOCUSBOARD_HOST env var if needed
+PI_HOST="${FOCUSBOARD_HOST:-focusboard}"
+PI_USER="${FOCUSBOARD_USER:-jopi}"
 PI_BASE="/home/${PI_USER}/focusboard"
 
 echo "Deploying FocusBoard dashboard to ${PI_HOST}..."

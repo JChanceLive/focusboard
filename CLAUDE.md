@@ -31,14 +31,20 @@ Mac (generate_state.py) -> state.json -> scp -> Pi (Chromium kiosk)
 
 ## state.json Output
 
-Written to `~/.claude/pi/state.json` then scp'd to `focusboard.local:/home/$USER/focusboard/dashboard/state.json`
+Written to `~/.claude/pi/state.json` then scp'd to `focusboard:/home/jopi/focusboard/dashboard/state.json`
 
-## Pi Details
+## Pi Connection
 
-- Hostname: `focusboard.local`
-- User: configured via `FOCUSBOARD_USER` env var (defaults to current user)
+- **SSH alias:** `focusboard` (defined in `~/.ssh/config`)
+- **IP:** `10.0.0.58` (static, on local network)
+- **User:** `jopi`
+- **MAC:** `b8:27:eb:57:6a:b7` (Raspberry Pi Foundation OUI)
+- **mDNS:** `focusboard.local` does NOT resolve reliably — always use the SSH alias `focusboard` instead
+- **Quick test:** `ssh focusboard "hostname"`
+- **Deploy:** `./deploy.sh` (uses SSH alias, no env vars needed)
 - Display: Portrait 1080x1920
 - Chromium kiosk mode, auto-start via systemd
+- nginx on port 8080 serves the dashboard
 
 ## Rules
 

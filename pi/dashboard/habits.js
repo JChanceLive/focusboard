@@ -3,7 +3,15 @@
     'use strict';
 
     var esc = FocusBoard.esc;
-    var MAX_SIDEBAR_ITEMS = 8;
+
+    // Smooth opacity gradient: full visibility for items 0-6, then fade out
+    function calcFadeOpacity(index) {
+        if (index <= 6) return 1.0;
+        if (index === 7) return 0.75;
+        if (index === 8) return 0.50;
+        if (index === 9) return 0.25;
+        return 0;
+    }
 
     // Map habit names (lowercase) to schedule block keywords for dot matching.
     // Each habit maps to block types/tasks it should match against.
@@ -59,36 +67,48 @@
             '</span>' +
             '<span class="habits-hdr-label">HABITS</span>';
 
-        // Collect incomplete habits
+        // Collect all habits: incomplete first, then completed
         var incomplete = [];
+        var completed = [];
         var tiers = habits.tiers || [];
         for (var t = 0; t < tiers.length; t++) {
             var habs = tiers[t].habits;
             for (var h = 0; h < habs.length; h++) {
-                if (!habs[h].done) {
+                if (habs[h].done) {
+                    completed.push(habs[h]);
+                } else {
                     incomplete.push(habs[h]);
                 }
             }
         }
 
-        // Render up to MAX items, with overflow counter
-        var html = '';
-        var show = Math.min(incomplete.length, MAX_SIDEBAR_ITEMS);
-        for (var i = 0; i < show; i++) {
-            var streakHtml = '';
-            if (incomplete[i].streak && incomplete[i].streak > 0) {
-                streakHtml = '<span class="habit-streak">\uD83D\uDD25' + incomplete[i].streak + '</span>';
-            }
-            html += '<div class="habit-row">' +
-                '<span class="habit-circle"></span>' +
-                esc(incomplete[i].name) +
-                streakHtml +
-                '</div>';
-        }
+        var allItems = incomplete.concat(completed);
 
-        var remaining = incomplete.length - show;
-        if (remaining > 0) {
-            html += '<div class="habit-row" style="opacity:0.5;font-size:11px">+' + remaining + ' more</div>';
+        // Render with opacity gradient
+        var html = '';
+        for (var i = 0; i < allItems.length; i++) {
+            var opacity = calcFadeOpacity(i);
+            if (opacity <= 0) break;
+
+            var hab = allItems[i];
+            var streakHtml = '';
+            if (hab.streak && hab.streak > 0) {
+                streakHtml = '<span class="habit-streak">\uD83D\uDD25' + hab.streak + '</span>';
+            }
+
+            if (hab.done) {
+                html += '<div class="habit-row habit-done" style="opacity:' + opacity + '">' +
+                    '<span class="habit-check">\u2714</span>' +
+                    esc(hab.name) +
+                    streakHtml +
+                    '</div>';
+            } else {
+                html += '<div class="habit-row" style="opacity:' + opacity + '">' +
+                    '<span class="habit-circle"></span>' +
+                    esc(hab.name) +
+                    streakHtml +
+                    '</div>';
+            }
         }
 
         incompleteEl.innerHTML = html;

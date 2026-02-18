@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>FocusBoard</title>
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
     <!-- Background nature image -->
@@ -48,6 +48,15 @@
         MAC SYNC OFFLINE - LAST UPDATE <span id="offline-time"></span>
     </div>
 
+    <!-- Pipeline Sidebar (left-aligned, below header) -->
+    <div id="pipeline-sidebar" class="pipeline-sidebar" style="display:none"></div>
+
+    <!-- Habits Sidebar (right-aligned, below header) -->
+    <div id="habits-sidebar" class="habits-sidebar" style="display:none">
+        <div id="habits-header" class="habits-hdr-strip"></div>
+        <div id="habits-incomplete" class="habits-incomplete"></div>
+    </div>
+
     <!-- Current Block (Hero) -->
     <section id="current-block" class="current-block">
         <div id="hero-weather" class="hero-weather"></div>
@@ -55,12 +64,17 @@
         <div id="hero-clock" class="hero-clock"></div>
         <div id="current-block-name" class="current-block-name"></div>
         <div id="current-block-sublabel" class="current-block-sublabel"></div>
-        <div class="current-block-divider"></div>
-        <div id="current-task" class="current-task"></div>
-        <div id="current-file" class="current-file"></div>
+
+        <!-- Hero Info Card -->
+        <div id="hero-card" class="hero-card">
+            <div id="hero-card-fields" class="hero-card-fields"></div>
+            <div id="hero-card-details" class="hero-card-details"></div>
+            <div id="hero-card-pipeline" class="hero-card-pipeline"></div>
+            <div id="hero-card-legend" class="hero-card-legend"></div>
+        </div>
+
         <div id="current-badge" class="current-badge"></div>
         <div id="current-behind" class="current-behind"></div>
-        <div id="current-details" class="current-details"></div>
     </section>
 
     <!-- Quote Bar (between hero and bottom zone) -->
@@ -92,7 +106,7 @@
 
     <!-- Load order: utils first, modules next, app.js last -->
     <script src="utils.js"></script>
-    <script src="clock.js"></script>
+    <script src="clock.js?v=2"></script>
     <script src="schedule.js"></script>
     <script src="calendar.js"></script>
     <script src="weather.js"></script>
@@ -107,7 +121,9 @@
     <script src="reminders.js"></script>
     <script src="daily-log.js"></script>
     <script src="progress.js"></script>
+    <script src="habits.js"></script>
+    <script src="pipeline-status.js"></script>
     <script src="render.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=2"></script>
 </body>
 </html>
