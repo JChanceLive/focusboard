@@ -18,10 +18,6 @@
 
     function renderPipeline(pipeline) {
         var sidebar = FocusBoard.$('pipeline-sidebar');
-        // Hide old hero-card-pipeline if it exists
-        var oldContainer = FocusBoard.$('hero-card-pipeline');
-        if (oldContainer) oldContainer.style.display = 'none';
-
         if (!sidebar) return;
 
         if (!pipeline || !pipeline.total_active) {

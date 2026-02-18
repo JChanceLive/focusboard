@@ -434,34 +434,6 @@ body.night-mode .night-overlay {
     transition: color 0.5s ease;
 }
 
-.hero-card-pipeline {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.hero-pipe-stat {
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--text-muted);
-}
-
-.hero-pipe-val {
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}
-
-.hero-pipe-brand {
-    font-size: 12px;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-}
-
 .hero-card-legend {
     margin-top: 8px;
     padding-top: 6px;
@@ -831,6 +803,16 @@ body.night-mode .night-overlay {
     color: var(--text-muted);
     border-top: 1px solid var(--border-subtle);
     flex-shrink: 0;
+    position: relative;
+}
+
+.sync-version {
+    position: absolute;
+    right: var(--side-padding);
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text-muted);
+    opacity: 0.4;
 }
 
 .sync-dot {

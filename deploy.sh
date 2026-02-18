@@ -30,11 +30,8 @@ scp -o ConnectTimeout=5 \
     "$SCRIPT_DIR/pi/config/"* \
     "$PI_HOST:$PI_BASE/config/"
 
-# NOTE: Pi uses nginx on port 8080 (not python http.server).
-# nginx must be installed and configured: /etc/nginx/sites-enabled/focusboard
-# Restart service after deploy to pick up changes:
-echo "Deployed. Restart focusboard service on Pi:"
-echo "  ssh $PI_HOST 'sudo systemctl restart focusboard'"
-echo ""
-echo "To install monitor power save timers (one-time):"
-echo "  ssh $PI_HOST 'sudo cp $PI_BASE/config/focusboard-monitor-*.service $PI_BASE/config/focusboard-monitor-*.timer /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now focusboard-monitor-off.timer focusboard-monitor-on.timer'"
+# Restart Chromium to pick up new files (clears cache)
+echo "Restarting focusboard service..."
+ssh -o ConnectTimeout=5 "$PI_HOST" "sudo systemctl restart focusboard" 2>/dev/null \
+    && echo "Done. Dashboard is live." \
+    || echo "Warning: restart failed (Pi may need manual restart)"
