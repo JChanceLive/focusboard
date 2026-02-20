@@ -18,6 +18,9 @@
 
     function isNightTime() {
         if (nightForced) return true;
+        var override = FocusBoard.override;
+        if (override && override.mode === 'day') return false;
+        if (override && override.mode === 'night') return true;
         var h = new Date().getHours();
         return h >= NIGHT_START_HOUR || h < NIGHT_END_HOUR;
     }

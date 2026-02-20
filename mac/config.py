@@ -16,6 +16,8 @@ STREAKS_PATH = Path.home() / ".claude" / "timekeeper" / "keystone_streaks.json"
 DAILY_LOG_PATH = Path.home() / ".claude" / "daily" / "current.md"
 QUICK_WINS_PATH = VAULT_ACTIVE / "QUICK-WINS.md"
 SYNC_LOG_PATH = Path.home() / ".claude" / "pi" / "sync.log"
+HABITS_DB_PATH = Path.home() / "Documents" / "Projects" / "Claude" / "terminal" / "habit-tracker" / "data" / "habits.db"
+YOUTUBE_OPS_PATH = Path.home() / "Documents" / "Projects" / "Claude" / "terminal" / "YouTube-Ops"
 
 # Block type mapping derived from philosophy.md
 BLOCK_TYPES = {

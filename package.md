@@ -18,7 +18,7 @@ FocusBoard collapses your entire day into a single point of clarity mounted on y
 ## Marketing Copy
 
 ### Tagline
-<!-- Under 80 characters -->
+<!-- Under 60 characters -->
 Your wall knows what you should be doing right now.
 
 ### Description

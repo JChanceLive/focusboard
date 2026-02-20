@@ -37,7 +37,11 @@
         return pos;
     }
 
-    function renderSchedule(blocks) {
+    // Cached habits data (set by render pass)
+    var _habitsData = null;
+
+    function renderSchedule(blocks, habits) {
+        if (habits !== undefined) _habitsData = habits;
         $scheduleList.innerHTML = '';
 
         var blockMinutes = parseBlockMinutes(blocks);
@@ -91,11 +95,22 @@
                 detailsHtml += '</div>';
             }
 
+            // Build habit dots HTML
+            var habitDotsHtml = '';
+            if (_habitsData && FocusBoard.findMatchingHabits) {
+                var matched = FocusBoard.findMatchingHabits(b.task, b.type || b.block, _habitsData);
+                for (var m = 0; m < matched.length; m++) {
+                    var dotCls = matched[m].done ? 's-habit-dot done' : 's-habit-dot';
+                    habitDotsHtml += '<span class="' + dotCls + '" title="' + esc(matched[m].name) + '"></span>';
+                }
+            }
+
             div.innerHTML =
                 '<span class="s-dot" style="background:' + (b.done ? '#555' : color) + '"></span>' +
                 '<span class="s-icon">' + icon + '</span>' +
                 '<span class="s-time">' + esc(b.time) + '</span>' +
                 '<span class="s-block" style="' + (b.is_current ? 'color:' + color : '') + '">' + esc(b.block) + '</span>' +
+                habitDotsHtml +
                 '<span class="s-task">' + taskText + '</span>' +
                 detailsHtml;
 

@@ -28,6 +28,8 @@ from parsers import (
     parse_task_counts, parse_daily_log, fetch_reminders, fetch_system_data,
 )
 from api import fetch_google_calendar, fetch_weather, load_and_update_streaks
+from habits_reader import read_habits_state
+from pipeline_reader import read_pipeline_state
 from log import get_logger
 
 logger = get_logger("main")
@@ -59,6 +61,10 @@ def generate_state() -> dict:
     reminders = fetch_reminders(config.get("reminders", {}).get("lists"))
     system_data = fetch_system_data(SYNC_LOG_PATH)
 
+    # Read habits and pipeline data
+    habits = read_habits_state()
+    pipeline = read_pipeline_state()
+
     # Handle missing TODAY.md
     if not today_content:
         cal_events, cal_legend = fetch_google_calendar(config)
@@ -80,6 +86,8 @@ def generate_state() -> dict:
             "daily_log": daily_log,
             "reminders": reminders,
             "system": system_data,
+            "habits": habits,
+            "pipeline": pipeline,
             "quote": get_quote(philosophy_content),
             "calendar": cal_events,
             "calendar_legend": cal_legend,
@@ -108,9 +116,14 @@ def generate_state() -> dict:
             break
 
     # Build now section
+    # Clear field names: do = what to work on, from_ref = source file, duration = time
+    # Legacy fields (task, file, source) kept for backwards compat with schedule.js
     if current_block:
         now_section = {
             "block": current_block["block"],
+            "do": current_block["file"],          # actual task description
+            "from_ref": current_block["task"],     # source file/reference
+            "duration": current_block["source"],   # time estimate
             "task": current_block["task"],
             "file": current_block["file"],
             "source": current_block["source"],
@@ -124,6 +137,9 @@ def generate_state() -> dict:
         # All done
         now_section = {
             "block": "Day Complete",
+            "do": "All blocks finished",
+            "from_ref": "",
+            "duration": "",
             "task": "All blocks finished",
             "file": "",
             "source": "",
@@ -136,6 +152,9 @@ def generate_state() -> dict:
     else:
         now_section = {
             "block": "",
+            "do": "Waiting for schedule",
+            "from_ref": "",
+            "duration": "",
             "task": "Waiting for schedule",
             "file": "",
             "source": "",
@@ -188,6 +207,8 @@ def generate_state() -> dict:
         "daily_log": daily_log,
         "reminders": reminders,
         "system": system_data,
+        "habits": habits,
+        "pipeline": pipeline,
         "quote": quote,
         "calendar": calendar_events,
         "calendar_legend": calendar_legend,

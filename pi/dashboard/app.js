@@ -18,6 +18,27 @@
 
     // Shared state accessible by other modules
     FocusBoard.lastState = null;
+    FocusBoard.override = { mode: 'auto' };
+
+    // ─── Fetch override ──────────────────────────────────────────────
+
+    function fetchOverride() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'override.json?t=' + Date.now());
+        xhr.onload = function () {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    FocusBoard.override = JSON.parse(xhr.responseText);
+                } catch (e) {
+                    FocusBoard.override = { mode: 'auto' };
+                }
+            }
+        };
+        xhr.onerror = function () {
+            FocusBoard.override = { mode: 'auto' };
+        };
+        xhr.send();
+    }
 
     // ─── Fetch state ───────────────────────────────────────────────────
 
@@ -84,8 +105,9 @@
     FocusBoard.updateLifeCounters();
     setInterval(FocusBoard.updateLifeCounters, POLL_INTERVAL);
 
+    fetchOverride();
     fetchState();
-    setInterval(fetchState, POLL_INTERVAL);
+    setInterval(function () { fetchOverride(); fetchState(); }, POLL_INTERVAL);
 
     FocusBoard.loadBackgroundImage();
     setInterval(FocusBoard.rotateBackgroundImage, BG_ROTATE_INTERVAL);

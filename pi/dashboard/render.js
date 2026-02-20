@@ -7,25 +7,92 @@
     var $currentIcon = FocusBoard.$('current-icon');
     var $currentBlockName = FocusBoard.$('current-block-name');
     var $currentSublabel = FocusBoard.$('current-block-sublabel');
-    var $currentTask = FocusBoard.$('current-task');
-    var $currentFile = FocusBoard.$('current-file');
     var $currentBadge = FocusBoard.$('current-badge');
     var $currentBehind = FocusBoard.$('current-behind');
-    var $currentDetails = FocusBoard.$('current-details');
     var $dateLabel = FocusBoard.$('date-label');
+    var $heroCard = FocusBoard.$('hero-card');
+    var $heroFields = FocusBoard.$('hero-card-fields');
+    var $heroDetails = FocusBoard.$('hero-card-details');
+    var $heroLegend = FocusBoard.$('hero-card-legend');
 
     // Track previous block for transition detection
     var prevBlockName = '';
-    var heroElements = [$currentIcon, $currentBlockName, $currentSublabel, $currentTask, $currentFile, $currentBadge, $currentBehind, $currentDetails];
+    var heroElements = [$currentIcon, $currentBlockName, $currentSublabel, $heroCard, $currentBadge, $currentBehind];
 
     function fadeHero(opacity) {
         for (var i = 0; i < heroElements.length; i++) {
-            heroElements[i].style.opacity = opacity;
+            if (heroElements[i]) heroElements[i].style.opacity = opacity;
         }
     }
 
     function setBlockColor(color) {
         document.documentElement.style.setProperty('--block-color', color || '#3498db');
+    }
+
+    function renderHeroCard(now) {
+        if (!$heroFields) return;
+
+        // Build labeled fields: DO, FROM, TIME
+        // Uses new clear field names (do, from_ref, duration) with legacy fallbacks
+        var html = '';
+
+        var doText = now['do'] || now.file || '';
+        var fromText = now.from_ref || now.task || '';
+        var timeText = now.duration || now.source || '';
+
+        // DO: the actual task
+        if (doText && doText !== '--') {
+            html += '<div class="hero-field">' +
+                '<span class="hero-field-label">DO</span>' +
+                '<span class="hero-field-value">' + esc(doText) + '</span>' +
+                '</div>';
+        }
+
+        // FROM: source reference
+        if (fromText && fromText !== '(fixed)' && fromText !== '(protected)') {
+            html += '<div class="hero-field">' +
+                '<span class="hero-field-label">FROM</span>' +
+                '<span class="hero-field-value small">' + esc(fromText) + '</span>' +
+                '</div>';
+        }
+
+        // TIME: duration estimate
+        if (timeText && timeText !== '--') {
+            html += '<div class="hero-field">' +
+                '<span class="hero-field-label">TIME</span>' +
+                '<span class="hero-field-value time">' + esc(timeText) + '</span>' +
+                '</div>';
+        }
+
+        $heroFields.innerHTML = html;
+
+        // Details (no label, just bullet list)
+        var details = now.details || [];
+        if (details.length > 0 && $heroDetails) {
+            $heroDetails.style.display = '';
+            var dhtml = '';
+            for (var i = 0; i < details.length; i++) {
+                dhtml += '<div class="detail-item">' + esc(details[i]) + '</div>';
+            }
+            $heroDetails.innerHTML = dhtml;
+        } else if ($heroDetails) {
+            $heroDetails.style.display = 'none';
+        }
+
+        // Legend for habit dots
+        if ($heroLegend) {
+            $heroLegend.innerHTML =
+                '<span class="hero-legend-item">' +
+                    '<span class="hero-legend-dot" style="background:var(--done)"></span>' +
+                    '<span class="hero-legend-label">habit done</span>' +
+                '</span>' +
+                '<span class="hero-legend-item">' +
+                    '<span class="hero-legend-dot" style="background:var(--text-muted);opacity:0.5"></span>' +
+                    '<span class="hero-legend-label">habit pending</span>' +
+                '</span>';
+        }
+
+        if ($heroCard) $heroCard.style.display = '';
     }
 
     function renderCurrentBlock(state) {
@@ -64,13 +131,7 @@
             $currentSublabel.style.display = 'none';
         }
 
-        $currentTask.textContent = now.task || '';
-
-        if (now.file) {
-            $currentFile.textContent = now.file + (now.source || '');
-        } else {
-            $currentFile.textContent = '';
-        }
+        renderHeroCard(now);
 
         var currentBlockData = (state.blocks || []).find(function (b) { return b.is_current; });
         if (currentBlockData && currentBlockData.required) {
@@ -91,18 +152,6 @@
         } else {
             $currentBehind.textContent = '';
         }
-
-        var details = now.details || [];
-        $currentDetails.innerHTML = '';
-        for (var i = 0; i < details.length; i++) {
-            var div = document.createElement('div');
-            div.className = 'detail-item';
-            div.textContent = details[i];
-            $currentDetails.appendChild(div);
-        }
-
-        var divider = $currentBlock.querySelector('.current-block-divider');
-        if (divider) divider.style.display = '';
     }
 
     function renderDayComplete(state) {
@@ -115,19 +164,17 @@
         $currentIcon.style.display = '';
         $currentBlockName.textContent = 'Day Complete';
         $currentSublabel.style.display = 'none';
-        $currentTask.textContent = '';
-        $currentFile.textContent = '';
         $currentBadge.textContent = '';
         $currentBehind.textContent = '';
-        $currentDetails.innerHTML = '';
+        if ($heroCard) $heroCard.style.display = 'none';
 
-        var divider = $currentBlock.querySelector('.current-block-divider');
-        if (divider) divider.style.display = 'none';
+        // Remove old overlay
+        var oldOverlay = $currentBlock.querySelector('.night-legacy-overlay');
+        if (oldOverlay) oldOverlay.remove();
 
         var overlay = document.createElement('div');
         overlay.className = 'night-legacy-overlay';
 
-        // Use daily quote from quotes.json if available, fall back to state.quote
         var dayQuote = FocusBoard.getDayCompleteQuote
             ? FocusBoard.getDayCompleteQuote(state.date)
             : null;
@@ -155,11 +202,9 @@
         $currentIcon.style.display = '';
         $currentBlockName.textContent = 'Waiting';
         $currentSublabel.style.display = 'none';
-        $currentTask.textContent = 'Schedule not generated yet';
-        $currentFile.textContent = '';
         $currentBadge.textContent = '';
         $currentBehind.textContent = '';
-        $currentDetails.innerHTML = '';
+        if ($heroCard) $heroCard.style.display = 'none';
     }
 
     function render(state) {
@@ -184,7 +229,7 @@
             renderCurrentBlock(state);
         }
 
-        FocusBoard.renderSchedule(state.blocks || []);
+        FocusBoard.renderSchedule(state.blocks || [], state.habits || {});
         FocusBoard.renderCalendar(state.calendar || [], state.calendar_legend || []);
         FocusBoard.renderWeather(state.weather || {});
         FocusBoard.renderKeystones(state.keystones || []);
@@ -195,6 +240,8 @@
         FocusBoard.renderTasks(state.tasks || {});
         FocusBoard.renderReminders(state.reminders || {});
         FocusBoard.renderDailyLog(state.daily_log || {});
+        FocusBoard.renderHabits(state.habits || {});
+        FocusBoard.renderPipeline(state.pipeline || {});
         FocusBoard.renderProgress(state.blocks || []);
     }
 
