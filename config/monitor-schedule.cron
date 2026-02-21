@@ -1,0 +1,4 @@
+# FocusBoard monitor power schedule
+# Off at 8:30 PM, on at 5:30 AM
+30 20 * * * /home/jopi/focusboard/scripts/monitor-schedule.sh off
+30 5 * * * /home/jopi/focusboard/scripts/monitor-schedule.sh on

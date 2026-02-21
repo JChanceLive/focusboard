@@ -1,0 +1,13 @@
+[Unit]
+Description=FocusBoard Kiosk Dashboard
+After=graphical.target
+Wants=graphical.target
+
+[Service]
+User=__USER__
+ExecStart=/bin/bash /home/__USER__/focusboard/scripts/chromium-kiosk.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target

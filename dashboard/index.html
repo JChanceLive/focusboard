@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>FocusBoard</title>
+    <link rel="stylesheet" href="style.css?v=12">
+</head>
+<body>
+    <!-- Background nature image -->
+    <div id="bg-image" class="bg-image"></div>
+
+    <!-- Night mode: ambient video background -->
+    <video id="night-video" class="night-video" muted loop playsinline></video>
+
+    <!-- Night mode: CSS gradient fallback -->
+    <div id="night-gradient" class="night-gradient"></div>
+
+    <!-- Night mode: minimal overlay -->
+    <section id="night-overlay" class="night-overlay">
+        <div id="night-moon" class="night-moon"></div>
+        <div id="night-clock" class="night-clock"></div>
+        <div id="night-date" class="night-date"></div>
+        <div class="night-sleep-label">SLEEP</div>
+        <div id="night-countdown" class="night-countdown"></div>
+    </section>
+
+    <!-- Header: Date + Life Counters + Keystones -->
+    <div id="header-bar" class="header-bar">
+        <span id="date-label" class="header-date"></span>
+        <div class="header-counters">
+            <span class="hc"><span id="counter-alive" class="hc-val"></span><span class="hc-lbl">ALIVE</span></span>
+            <span class="hc-dot">·</span>
+            <span class="hc"><span id="counter-allin" class="hc-val"></span><span class="hc-lbl">ALL-IN</span></span>
+            <span class="hc-dot">·</span>
+            <span class="hc"><span id="counter-baby" class="hc-val"></span><span class="hc-lbl">REMY</span></span>
+            <span class="hc-dot" id="counter-launch-sep" style="display:none">·</span>
+            <span class="hc" id="counter-launch-item" style="display:none"><span id="counter-launch" class="hc-val"></span><span class="hc-lbl">LAUNCH</span></span>
+        </div>
+        <div id="keystones-bar" class="header-keystones"></div>
+    </div>
+
+    <!-- Progress Bar (below header) -->
+    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+    <!-- Offline Banner (below header) -->
+    <div id="offline-banner" class="offline-banner hidden">
+        MAC SYNC OFFLINE - LAST UPDATE <span id="offline-time"></span>
+    </div>
+
+    <!-- Pipeline Sidebar (left-aligned, below header) -->
+    <div id="pipeline-sidebar" class="pipeline-sidebar" style="display:none"></div>
+
+    <!-- Habits Sidebar (right-aligned, below header) -->
+    <div id="habits-sidebar" class="habits-sidebar" style="display:none">
+        <div id="habits-header" class="habits-hdr-strip"></div>
+        <div id="habits-incomplete" class="habits-incomplete"></div>
+    </div>
+
+    <!-- Current Block (Hero) -->
+    <section id="current-block" class="current-block">
+        <div id="hero-weather" class="hero-weather"></div>
+        <div id="current-icon" class="current-icon"></div>
+        <div id="hero-clock" class="hero-clock"></div>
+        <div id="current-block-name" class="current-block-name"></div>
+        <div id="current-block-sublabel" class="current-block-sublabel"></div>
+
+        <!-- Hero Info Card -->
+        <div id="hero-card" class="hero-card">
+            <div id="hero-card-fields" class="hero-card-fields"></div>
+            <div id="hero-card-details" class="hero-card-details"></div>
+            <div id="hero-card-legend" class="hero-card-legend"></div>
+        </div>
+
+        <div id="current-badge" class="current-badge"></div>
+        <div id="current-behind" class="current-behind"></div>
+    </section>
+
+    <!-- Quote Bar (between hero and bottom zone) -->
+    <div id="quote-bar" class="quote-bar" style="display:none"></div>
+
+    <!-- Bottom Zone: Schedule (left) + Calendar (right) -->
+    <section id="bottom-zone" class="bottom-zone">
+        <div id="bottom-left" class="bottom-left">
+            <div class="section-title">SCHEDULE</div>
+            <div id="schedule-list" class="schedule-list"></div>
+            <div id="done-today" class="done-today" style="display:none"></div>
+            <div id="daily-log" class="daily-log" style="display:none"></div>
+        </div>
+        <div id="bottom-right" class="bottom-right">
+            <div class="section-title">CALENDAR</div>
+            <div id="calendar-list" class="calendar-list"></div>
+            <div id="recording-ready" class="recording-ready" style="display:none"></div>
+            <div id="backlog-next" class="backlog-next" style="display:none"></div>
+            <div id="tasks-summary" class="tasks-summary" style="display:none"></div>
+            <div id="reminders" class="reminders" style="display:none"></div>
+        </div>
+    </section>
+
+    <!-- Sync Status -->
+    <div id="sync-status" class="sync-status">
+        <span id="sync-dot" class="sync-dot"></span>
+        <span id="sync-text"></span>
+        <span class="sync-version">v2.4</span>
+    </div>
+
+    <!-- Load order: utils first, modules next, app.js last -->
+    <script src="utils.js?v=12"></script>
+    <script src="clock.js?v=12"></script>
+    <script src="schedule.js?v=12"></script>
+    <script src="calendar.js?v=12"></script>
+    <script src="weather.js?v=12"></script>
+    <script src="keystones.js?v=12"></script>
+    <script src="counters.js?v=12"></script>
+    <script src="background.js?v=12"></script>
+    <script src="done-today.js?v=12"></script>
+    <script src="quotes.js?v=12"></script>
+    <script src="recording-ready.js?v=12"></script>
+    <script src="backlog.js?v=12"></script>
+    <script src="tasks.js?v=12"></script>
+    <script src="reminders.js?v=12"></script>
+    <script src="daily-log.js?v=12"></script>
+    <script src="progress.js?v=12"></script>
+    <script src="habits.js?v=12"></script>
+    <script src="pipeline-status.js?v=12"></script>
+    <script src="render.js?v=12"></script>
+    <script src="app.js?v=12"></script>
+</body>
+</html>
