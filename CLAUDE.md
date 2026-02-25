@@ -46,6 +46,34 @@ Written to `~/.claude/pi/state.json` then scp'd to `focusboard:/home/jopi/focusb
 - Chromium kiosk mode, auto-start via systemd
 - nginx on port 8080 serves the dashboard
 
+## Troubleshooting: "Mac Sync Offline"
+
+### Key Auth Architecture (IMPORTANT)
+
+The SSH config specifies `IdentityFile ~/.ssh/id_ed25519` for all Pi hosts.
+The Pi's `authorized_keys` MUST contain that key (`josiah@focusboard`).
+
+**History:** The Pi was originally set up with the `github_backup` key (`josiah@claude-backup`),
+not `id_ed25519`. SSH worked anyway because the GitHub key was loaded in the agent
+(via `AddKeysToAgent yes` on the github.com host), and SSH tries all agent keys.
+After a Mac restart the agent was empty, and only `id_ed25519` was offered (per config) —
+which the Pi didn't recognize. Fixed 2026-02-21 by adding `id_ed25519` to authorized_keys.
+
+### Fixes Applied (2026-02-21)
+
+1. **Added `id_ed25519` to Pi's authorized_keys** — the key the SSH config actually specifies
+2. **Added `AddKeysToAgent yes` and `UseKeychain yes`** to all Pi hosts in `~/.ssh/config` — persists keys across Mac restarts
+
+### If offline banner appears after restart:
+
+1. Check SSH: `ssh focusboard "hostname"`
+2. If "Permission denied (publickey)":
+   - Re-add key to agent: `ssh-add --apple-use-keychain ~/.ssh/id_ed25519`
+   - If still failing, re-push key to Pi: `ssh-copy-id -i ~/.ssh/id_ed25519.pub jopi@10.0.0.58` (requires Pi password)
+3. Sync resumes automatically within 2 min (launchd job)
+
+**Sync log:** `~/.claude/pi/sync.log` (last 100 entries, `OK:` = success, `WARN:` = failure)
+
 ## Rules
 
 - No build steps. Dashboard is vanilla HTML/CSS/JS.

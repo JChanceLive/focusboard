@@ -28,3 +28,10 @@ mac/com.focusboard.sync.plist
 # Editor
 .vscode/
 *.swp
+
+# Memory MCP
+.memory/
+
+# Claude Code (local config)
+.mcp.json
+.claude/
