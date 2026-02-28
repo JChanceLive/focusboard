@@ -81,3 +81,17 @@ which the Pi didn't recognize. Fixed 2026-02-21 by adding `id_ed25519` to author
 - If scp fails, Pi shows last known data + offline banner.
 - Sequence > Time: current block = first unchecked, never auto-advance.
 - json.dumps MUST use `ensure_ascii=True` — external data sources (Google Calendar, weather API) can contain surrogate characters that crash UTF-8 encoding. JavaScript handles `\uXXXX` escapes natively.
+
+<!-- MEMORY:START -->
+# focusboard
+
+_Last updated: 2026-02-25 | 2 active memories, 2 total_
+
+## Patterns & Conventions
+- Pi project Git workflow applies to terminal ecosystem: gitignore standardization includes .mcp.json/.claude/ to preve... [git, terminal, pi-projects, ecosystem, workflow]
+
+## Current Progress
+- Terminal ecosystem gitignore cleanup campaign: Tier 1 (6 repos: auto-packager, fog-to-fire, pidash, piink, stardeck, ... [terminal, git, cleanup, batching]
+
+_For deeper context, use memory_search, memory_related, or memory_ask tools._
+<!-- MEMORY:END -->
