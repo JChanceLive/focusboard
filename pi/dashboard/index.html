@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>FocusBoard</title>
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
     <!-- Background nature image -->
@@ -25,9 +25,8 @@
         <div id="night-countdown" class="night-countdown"></div>
     </section>
 
-    <!-- Header: Date + Life Counters + Keystones -->
+    <!-- Header: Life Counters (left) + Keystones (right) -->
     <div id="header-bar" class="header-bar">
-        <span id="date-label" class="header-date"></span>
         <div class="header-counters">
             <span class="hc"><span id="counter-alive" class="hc-val"></span><span class="hc-lbl">ALIVE</span></span>
             <span class="hc-dot">·</span>
@@ -61,6 +60,7 @@
     <section id="current-block" class="current-block">
         <div id="hero-weather" class="hero-weather"></div>
         <div id="current-icon" class="current-icon"></div>
+        <span id="date-label" class="hero-date"></span>
         <div id="hero-clock" class="hero-clock"></div>
         <div id="current-block-name" class="current-block-name"></div>
         <div id="current-block-sublabel" class="current-block-sublabel"></div>
@@ -69,7 +69,6 @@
         <div id="hero-card" class="hero-card">
             <div id="hero-card-fields" class="hero-card-fields"></div>
             <div id="hero-card-details" class="hero-card-details"></div>
-            <div id="hero-card-legend" class="hero-card-legend"></div>
         </div>
 
         <div id="current-badge" class="current-badge"></div>
@@ -105,25 +104,25 @@
     </div>
 
     <!-- Load order: utils first, modules next, app.js last -->
-    <script src="utils.js?v=12"></script>
-    <script src="clock.js?v=12"></script>
-    <script src="schedule.js?v=12"></script>
-    <script src="calendar.js?v=12"></script>
-    <script src="weather.js?v=12"></script>
-    <script src="keystones.js?v=12"></script>
-    <script src="counters.js?v=12"></script>
-    <script src="background.js?v=12"></script>
-    <script src="done-today.js?v=12"></script>
-    <script src="quotes.js?v=12"></script>
-    <script src="recording-ready.js?v=12"></script>
-    <script src="backlog.js?v=12"></script>
-    <script src="tasks.js?v=12"></script>
-    <script src="reminders.js?v=12"></script>
-    <script src="daily-log.js?v=12"></script>
-    <script src="progress.js?v=12"></script>
-    <script src="habits.js?v=12"></script>
-    <script src="pipeline-status.js?v=12"></script>
-    <script src="render.js?v=12"></script>
-    <script src="app.js?v=12"></script>
+    <script src="utils.js?v=13"></script>
+    <script src="clock.js?v=13"></script>
+    <script src="schedule.js?v=13"></script>
+    <script src="calendar.js?v=13"></script>
+    <script src="weather.js?v=13"></script>
+    <script src="keystones.js?v=13"></script>
+    <script src="counters.js?v=13"></script>
+    <script src="background.js?v=13"></script>
+    <script src="done-today.js?v=13"></script>
+    <script src="quotes.js?v=13"></script>
+    <script src="recording-ready.js?v=13"></script>
+    <script src="backlog.js?v=13"></script>
+    <script src="tasks.js?v=13"></script>
+    <script src="reminders.js?v=13"></script>
+    <script src="daily-log.js?v=13"></script>
+    <script src="progress.js?v=13"></script>
+    <script src="habits.js?v=13"></script>
+    <script src="pipeline-status.js?v=13"></script>
+    <script src="render.js?v=13"></script>
+    <script src="app.js?v=13"></script>
 </body>
 </html>

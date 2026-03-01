@@ -51,10 +51,12 @@ BLOCK_TYPES = {
 
 # Keystone-triggered blocks (required = true)
 KEYSTONE_BLOCKS = {
-    "Morning Foundation", "Creation", "Creation Stack",
+    "Morning Foundation",
+    "Creation", "Creation Stack",
     "Workout", "Power Hour",
     "DEV-1", "DEV-2", "DEV-3",
-    "Midday Reset", "Clean Mama",
+    "EXEC-1", "EXEC-2", "EXEC-3", "EXEC-4",
+    "LAB-1", "LAB-2", "LAB-3",
     "Family", "Family Time",
     "Night Restoration", "Wind-Down",
 }

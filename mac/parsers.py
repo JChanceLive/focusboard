@@ -471,28 +471,32 @@ def is_required_block(block_name: str, file_ref: str) -> bool:
 
 
 def match_keystones_to_blocks(keystones: list[dict], blocks: list[dict]) -> list[dict]:
-    """Mark keystones as done based on their triggered block being done."""
-    # Map keystone trigger blocks to keystone IDs
-    # K1 -> Morning Foundation, K2 -> Creation, K3 -> Workout, etc.
+    """Mark keystones as done/active based on their triggered blocks."""
     trigger_map = {
-        "K1": ["Morning Foundation"],
-        "K2": ["Creation", "Creation Stack"],
-        "K3": ["Workout", "Power Hour"],
-        "K4": ["DEV-1"],
-        "K5": ["Midday Reset", "Clean Mama"],
-        "K6": ["Family", "Family Time"],
-        "K7": ["Night Restoration", "Wind-Down"],
+        "RISE":   ["Morning Foundation"],
+        "CREATE": ["Creation", "Creation Stack"],
+        "POWER":  ["Workout", "Power Hour"],
+        "BUILD":  ["DEV-1", "DEV-2", "DEV-3",
+                   "EXEC-1", "EXEC-2", "EXEC-3", "EXEC-4",
+                   "LAB-1", "LAB-2", "LAB-3"],
+        "GROUND": ["Family", "Family Time",
+                   "Night Restoration", "Wind-Down"],
     }
 
-    # Build lookup of done blocks
+    # Build lookup of done blocks and find current block name
     done_blocks = set()
+    current_block_name = ""
     for b in blocks:
         if b["done"]:
             done_blocks.add(b["block"])
+        if b.get("is_current"):
+            current_block_name = b["block"]
 
     for ks in keystones:
         trigger_blocks = trigger_map.get(ks["id"], [])
         # Keystone is done if ANY of its triggered blocks is done
         ks["done"] = any(tb in done_blocks for tb in trigger_blocks)
+        # Keystone is active if current block is in its trigger list
+        ks["active"] = current_block_name in trigger_blocks
 
     return keystones

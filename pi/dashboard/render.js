@@ -13,7 +13,6 @@
     var $heroCard = FocusBoard.$('hero-card');
     var $heroFields = FocusBoard.$('hero-card-fields');
     var $heroDetails = FocusBoard.$('hero-card-details');
-    var $heroLegend = FocusBoard.$('hero-card-legend');
 
     // Track previous block for transition detection
     var prevBlockName = '';
@@ -32,34 +31,27 @@
     function renderHeroCard(now) {
         if (!$heroFields) return;
 
-        // Build labeled fields: DO, FROM, TIME
-        // Uses new clear field names (do, from_ref, duration) with legacy fallbacks
+        // Uses clear field names (do, from_ref, duration) with legacy fallbacks
         var html = '';
 
         var doText = now['do'] || now.file || '';
         var fromText = now.from_ref || now.task || '';
         var timeText = now.duration || now.source || '';
 
-        // DO: the actual task
         if (doText && doText !== '--') {
             html += '<div class="hero-field">' +
-                '<span class="hero-field-label">DO</span>' +
                 '<span class="hero-field-value">' + esc(doText) + '</span>' +
                 '</div>';
         }
 
-        // FROM: source reference
         if (fromText && fromText !== '(fixed)' && fromText !== '(protected)') {
             html += '<div class="hero-field">' +
-                '<span class="hero-field-label">FROM</span>' +
                 '<span class="hero-field-value small">' + esc(fromText) + '</span>' +
                 '</div>';
         }
 
-        // TIME: duration estimate
         if (timeText && timeText !== '--') {
             html += '<div class="hero-field">' +
-                '<span class="hero-field-label">TIME</span>' +
                 '<span class="hero-field-value time">' + esc(timeText) + '</span>' +
                 '</div>';
         }
@@ -77,19 +69,6 @@
             $heroDetails.innerHTML = dhtml;
         } else if ($heroDetails) {
             $heroDetails.style.display = 'none';
-        }
-
-        // Legend for habit dots
-        if ($heroLegend) {
-            $heroLegend.innerHTML =
-                '<span class="hero-legend-item">' +
-                    '<span class="hero-legend-dot" style="background:var(--done)"></span>' +
-                    '<span class="hero-legend-label">habit done</span>' +
-                '</span>' +
-                '<span class="hero-legend-item">' +
-                    '<span class="hero-legend-dot" style="background:var(--text-muted);opacity:0.5"></span>' +
-                    '<span class="hero-legend-label">habit pending</span>' +
-                '</span>';
         }
 
         if ($heroCard) $heroCard.style.display = '';
@@ -133,9 +112,10 @@
 
         renderHeroCard(now);
 
-        var currentBlockData = (state.blocks || []).find(function (b) { return b.is_current; });
-        if (currentBlockData && currentBlockData.required) {
-            $currentBadge.textContent = '\u25C6 Keystone Trigger';
+        // Show active keystone name as badge
+        var activeKs = (state.keystones || []).find(function (k) { return k.active; });
+        if (activeKs) {
+            $currentBadge.textContent = '\u25C6 ' + activeKs.id;
         } else {
             $currentBadge.textContent = '';
         }
