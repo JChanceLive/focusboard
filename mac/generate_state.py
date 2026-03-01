@@ -119,11 +119,18 @@ def generate_state() -> dict:
     # Clear field names: do = what to work on, from_ref = source file, duration = time
     # Legacy fields (task, file, source) kept for backwards compat with schedule.js
     if current_block:
+        # Compute time range: start time from current block, end from next block
+        current_idx = blocks.index(current_block)
+        time_range = current_block["time"]
+        if current_idx + 1 < len(blocks):
+            time_range = current_block["time"] + " - " + blocks[current_idx + 1]["time"]
+
         now_section = {
             "block": current_block["block"],
             "do": current_block["file"],          # actual task description
             "from_ref": current_block["task"],     # source file/reference
             "duration": current_block["source"],   # time estimate
+            "time_range": time_range,              # e.g., "6:00 - 7:05"
             "task": current_block["task"],
             "file": current_block["file"],
             "source": current_block["source"],

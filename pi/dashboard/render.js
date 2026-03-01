@@ -51,8 +51,12 @@
         }
 
         if (timeText && timeText !== '--') {
+            var timeDisplay = timeText;
+            if (now.time_range) {
+                timeDisplay = timeText + ' \u00B7 ' + now.time_range;
+            }
             html += '<div class="hero-field">' +
-                '<span class="hero-field-value time">' + esc(timeText) + '</span>' +
+                '<span class="hero-field-value time">' + esc(timeDisplay) + '</span>' +
                 '</div>';
         }
 
@@ -100,25 +104,27 @@
 
         $currentBlockName.textContent = now.block || '';
 
-        var labelUpper = (now.label || '').toUpperCase();
-        var taskUpper = (now.task || '').toUpperCase();
-        var blockUpper = (now.block || '').toUpperCase();
-        if (now.label && labelUpper !== blockUpper && labelUpper !== taskUpper) {
-            $currentSublabel.textContent = now.label;
+        // Show active keystone as sublabel (replaces redundant label like "FOUNDATION")
+        var activeKs = (state.keystones || []).find(function (k) { return k.active; });
+        if (activeKs) {
+            $currentSublabel.textContent = '\u25C6 ' + activeKs.id;
             $currentSublabel.style.display = '';
         } else {
-            $currentSublabel.style.display = 'none';
+            var labelUpper = (now.label || '').toUpperCase();
+            var blockUpper = (now.block || '').toUpperCase();
+            // Only show label if it's not redundant with block name
+            if (now.label && blockUpper.indexOf(labelUpper) === -1 && labelUpper.indexOf(blockUpper) === -1) {
+                $currentSublabel.textContent = now.label;
+                $currentSublabel.style.display = '';
+            } else {
+                $currentSublabel.style.display = 'none';
+            }
         }
 
         renderHeroCard(now);
 
-        // Show active keystone name as badge
-        var activeKs = (state.keystones || []).find(function (k) { return k.active; });
-        if (activeKs) {
-            $currentBadge.textContent = '\u25C6 ' + activeKs.id;
-        } else {
-            $currentBadge.textContent = '';
-        }
+        // Badge cleared - keystone name now shown in sublabel above
+        $currentBadge.textContent = '';
 
         var blocks = state.blocks || [];
         var blockMinutes = FocusBoard.parseBlockMinutes(blocks);
