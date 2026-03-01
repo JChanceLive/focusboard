@@ -27,7 +27,7 @@ from parsers import (
     extract_sop_tasks, match_keystones_to_blocks, parse_backlog_next,
     parse_task_counts, parse_daily_log, fetch_reminders, fetch_system_data,
 )
-from api import fetch_google_calendar, fetch_weather, load_and_update_streaks
+from api import fetch_google_calendar, fetch_weather, fetch_keystone_streaks
 from habits_reader import read_habits_state
 from pipeline_reader import read_pipeline_state
 from log import get_logger
@@ -191,8 +191,8 @@ def generate_state() -> dict:
     calendar_events, calendar_legend = fetch_google_calendar(config)
     weather = fetch_weather(config)
 
-    # Update keystone streaks (enriches keystones in-place with streak/best_streak)
-    load_and_update_streaks(keystones, date_iso)
+    # Fetch keystone streaks from PiPulse API (enriches keystones in-place)
+    fetch_keystone_streaks(keystones)
 
     # All blocks done?
     all_done = all(b["done"] for b in blocks) if blocks else False

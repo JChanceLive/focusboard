@@ -85,12 +85,26 @@ which the Pi didn't recognize. Fixed 2026-02-21 by adding `id_ed25519` to author
 <!-- MEMORY:START -->
 # focusboard
 
-_Last updated: 2026-02-25 | 2 active memories, 2 total_
+_Last updated: 2026-03-01 | 12 active memories, 12 total_
+
+## Key Decisions
+- FocusBoard visual review deferred to fresh window: Session 1 handles backend rewrite + git commit; Session 2 in new c... [focusboard, ui-review, session-planning, multi-window]
+- FocusBoard keystone completion loop redesign prioritizes visual feedback over binary done-checking: render active key... [focusboard, keystones, ux-design, motivation]
+- FocusBoard project pivoted from original UPGRADE-PLAN-V2.md (9-session calendar/tasks/log roadmap) to keystones redes... [focusboard, keystones, planning, pivot, scope]
 
 ## Patterns & Conventions
 - Pi project Git workflow applies to terminal ecosystem: gitignore standardization includes .mcp.json/.claude/ to preve... [git, terminal, pi-projects, ecosystem, workflow]
+- FocusBoard keystones array in state.json is dynamically built from keystones.yaml keys (no hardcoded K1-K9); streaks ... [focusboard, state-management, json-contract]
+- FocusBoard state.json generation uses absolute paths for all file reads (TODAY.md, keystones.yaml, focus.md, philosop... [focusboard, testing, launchd, state-management]
+- FocusBoard time range calculation: start_time from current_block['time'], end_time from next block's start time; form... [focusboard, time-display, state-generation, ui-pattern]
+
+## Gotchas & Pitfalls
+- launchd cron job (2-min interval) overwrites state.json while developer is testing locally; manual generate_state.py ... [focusboard, launchd, testing, timing]
+- FocusBoard 'Sequence > Time' rule means current block is always first unchecked item (not based on wall-clock time), ... [focusboard, keystones, block-tracking, sequence-rule]
 
 ## Current Progress
+- FocusBoard Session 2 in progress: designed keystone completion loop redesign (color states, progress meter, daily goa... [focusboard, keystones, session-planning, design-phase]
+- Brainstorm prep initiated: reviewing ARCH-KEYSTONES-FOCUSBOARD-REDESIGN.md Section 6 (completion loop architecture) a... [focusboard, brainstorm-prep, completion-loop, architecture-planning]
 - Terminal ecosystem gitignore cleanup campaign: Tier 1 (6 repos: auto-packager, fog-to-fire, pidash, piink, stardeck, ... [terminal, git, cleanup, batching]
 
 _For deeper context, use memory_search, memory_related, or memory_ask tools._

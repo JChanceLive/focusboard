@@ -5,7 +5,7 @@ import requests
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from config import OWM_ICON_MAP, STREAKS_PATH
+from config import OWM_ICON_MAP
 from log import get_logger
 
 logger = get_logger("api")
@@ -253,66 +253,27 @@ def fetch_weather(config: dict) -> dict:
         return {}
 
 
-def load_and_update_streaks(keystones: list[dict], date_iso: str) -> None:
-    """Load keystone streaks, update with today's data, enrich keystones in-place.
+PIPULSE_STREAKS_URL = "http://10.0.0.103:5055/api/keystones/streaks"
 
-    Streak file format:
-    {
-        "daily_log": {"2026-02-11": {"K1": true, "K2": false, ...}, ...},
-        "streaks": {"K1": {"current": 5, "best": 12}, ...}
-    }
+
+def fetch_keystone_streaks(keystones: list[dict]) -> None:
+    """Fetch keystone streaks from PiPulse API, enrich keystones in-place.
+
+    Hits GET /api/keystones/streaks which returns:
+    {"RISE": {"current": 5, "best": 12}, "CREATE": {...}, ...}
+
+    Falls back to 0/0 if Pi is offline.
     """
-    # Load or initialize
+    streaks = {}
     try:
-        streak_data = json.loads(STREAKS_PATH.read_text(encoding="utf-8"))
-    except (FileNotFoundError, PermissionError, json.JSONDecodeError):
-        streak_data = {"daily_log": {}, "streaks": {}}
+        resp = requests.get(PIPULSE_STREAKS_URL, timeout=3)
+        resp.raise_for_status()
+        streaks = resp.json()
+    except Exception as exc:
+        logger.warning("Keystone streaks fetch failed (Pi offline?): %s", exc)
 
-    daily_log = streak_data.get("daily_log", {})
-    streaks = streak_data.get("streaks", {})
-
-    # Update today's entry
-    today_entry = {}
     for ks in keystones:
-        today_entry[ks["id"]] = ks.get("done", False)
-    daily_log[date_iso] = today_entry
-
-    # Prune to last 30 days
-    if len(daily_log) > 30:
-        sorted_dates = sorted(daily_log.keys())
-        for old_date in sorted_dates[:-30]:
-            del daily_log[old_date]
-
-    # Calculate streaks per keystone
-    sorted_dates = sorted(daily_log.keys(), reverse=True)
-    for ks in keystones:
-        kid = ks["id"]
-        current_streak = 0
-        for d in sorted_dates:
-            if daily_log[d].get(kid, False):
-                current_streak += 1
-            else:
-                break
-
-        best = streaks.get(kid, {}).get("best", 0)
-        if current_streak > best:
-            best = current_streak
-
-        streaks[kid] = {"current": current_streak, "best": best}
-
-        # Enrich keystone dict in-place
-        ks["streak"] = current_streak
-        ks["best_streak"] = best
-
-    # Write back
-    streak_data["daily_log"] = daily_log
-    streak_data["streaks"] = streaks
-
-    try:
-        STREAKS_PATH.parent.mkdir(parents=True, exist_ok=True)
-        STREAKS_PATH.write_text(
-            json.dumps(streak_data, indent=2, ensure_ascii=False),
-            encoding="utf-8",
-        )
-    except (PermissionError, OSError):
-        pass  # Non-critical, streaks just won't persist
+        kid = ks.get("id", "")
+        ks_streaks = streaks.get(kid, {})
+        ks["streak"] = ks_streaks.get("current", 0)
+        ks["best_streak"] = ks_streaks.get("best", 0)
