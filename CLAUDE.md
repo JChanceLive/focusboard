@@ -85,7 +85,7 @@ which the Pi didn't recognize. Fixed 2026-02-21 by adding `id_ed25519` to author
 <!-- MEMORY:START -->
 # focusboard
 
-_Last updated: 2026-03-01 | 12 active memories, 12 total_
+_Last updated: 2026-03-01 | 12 active memories, 13 total_
 
 ## Key Decisions
 - FocusBoard visual review deferred to fresh window: Session 1 handles backend rewrite + git commit; Session 2 in new c... [focusboard, ui-review, session-planning, multi-window]
@@ -103,9 +103,9 @@ _Last updated: 2026-03-01 | 12 active memories, 12 total_
 - FocusBoard 'Sequence > Time' rule means current block is always first unchecked item (not based on wall-clock time), ... [focusboard, keystones, block-tracking, sequence-rule]
 
 ## Current Progress
+- All 33 git repos audited 2026-03-01: 23 clean, 8 dirty repos committed and pushed to GitHub (/.claude: 21 files, pipu... [git, ecosystem, cleanup, infrastructure]
 - FocusBoard Session 2 in progress: designed keystone completion loop redesign (color states, progress meter, daily goa... [focusboard, keystones, session-planning, design-phase]
 - Brainstorm prep initiated: reviewing ARCH-KEYSTONES-FOCUSBOARD-REDESIGN.md Section 6 (completion loop architecture) a... [focusboard, brainstorm-prep, completion-loop, architecture-planning]
-- Terminal ecosystem gitignore cleanup campaign: Tier 1 (6 repos: auto-packager, fog-to-fire, pidash, piink, stardeck, ... [terminal, git, cleanup, batching]
 
 _For deeper context, use memory_search, memory_related, or memory_ask tools._
 <!-- MEMORY:END -->
