@@ -1,39 +1,34 @@
-// FocusBoard - Weather widget rendering
+// FocusBoard - Weather widget (compact sidebar, top-left)
 (function () {
     'use strict';
 
     var esc = FocusBoard.esc;
-    var $heroWeather = FocusBoard.$('hero-weather');
+    var $weatherSidebar = FocusBoard.$('weather-sidebar');
 
     function renderWeather(weather) {
+        if (!$weatherSidebar) return;
+
         if (!weather || !weather.temp) {
-            $heroWeather.innerHTML = '';
+            $weatherSidebar.style.display = 'none';
             return;
         }
 
-        var html = '<div class="weather-main">' +
-            '<span class="weather-icon">' + (weather.icon_char || '\u2600') + '</span>' +
-            '<span class="weather-temp">' + weather.temp + '\u00B0</span>' +
+        $weatherSidebar.style.display = '';
+
+        var html = '<div class="ws-main">' +
+            '<span class="ws-icon">' + (weather.icon_char || '\u2600') + '</span>' +
+            '<span class="ws-temp">' + weather.temp + '\u00B0</span>' +
             '</div>';
 
-        var details = [];
-        if (weather.feels_like) details.push('Feels ' + weather.feels_like + '\u00B0');
-        if (weather.high && weather.low) details.push('H:' + weather.high + '\u00B0 L:' + weather.low + '\u00B0');
-        if (weather.humidity) details.push(weather.humidity + '% humidity');
+        var line2 = [];
+        if (weather.feels_like) line2.push('Feels ' + weather.feels_like + '\u00B0');
+        if (weather.high && weather.low) line2.push('H:' + weather.high + '\u00B0 L:' + weather.low + '\u00B0');
 
-        if (details.length) {
-            html += '<div class="weather-details">';
-            for (var i = 0; i < details.length; i++) {
-                html += '<span>' + esc(details[i]) + '</span>';
-            }
-            html += '</div>';
+        if (line2.length) {
+            html += '<div class="ws-details">' + esc(line2.join(' \u00B7 ')) + '</div>';
         }
 
-        if (weather.description) {
-            html += '<div class="weather-desc">' + esc(weather.description) + '</div>';
-        }
-
-        $heroWeather.innerHTML = html;
+        $weatherSidebar.innerHTML = html;
     }
 
     FocusBoard.renderWeather = renderWeather;

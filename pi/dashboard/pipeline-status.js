@@ -1,53 +1,20 @@
-// FocusBoard - Pipeline status (top-left sidebar, opposite habits)
+// FocusBoard - Pipeline status (compact footer, inside sync bar)
 (function () {
     'use strict';
 
-    var BRAND_COLORS = {
-        cc: '#3498db',
-        pioneers: '#e84393',
-        ha: '#f39c12',
-        zendo: '#00e676'
-    };
+    function renderPipeline(meta) {
+        var $el = FocusBoard.$('sync-pipeline');
+        if (!$el) return;
 
-    var BRAND_LABELS = {
-        cc: 'CC',
-        pioneers: 'P',
-        ha: 'HA',
-        zendo: 'Z'
-    };
+        var active = meta.pipeline_active || 0;
+        var rec = meta.pipeline_rec_ready || 0;
 
-    function renderPipeline(pipeline) {
-        var sidebar = FocusBoard.$('pipeline-sidebar');
-        if (!sidebar) return;
-
-        if (!pipeline || !pipeline.total_active) {
-            sidebar.style.display = 'none';
+        if (!active) {
+            $el.textContent = '';
             return;
         }
 
-        sidebar.style.display = '';
-        var html = '';
-
-        // Total + rec ready
-        html += '<span class="pipe-stat">' +
-            '<span class="pipe-val" style="color:var(--text-primary)">' + pipeline.total_active + '</span> active' +
-            '</span>';
-        html += '<span class="pipe-stat">' +
-            '<span class="pipe-val" style="color:var(--done)">' + pipeline.ready_to_record + '</span> rec ready' +
-            '</span>';
-
-        // Channel breakdown
-        var brands = ['cc', 'pioneers', 'ha', 'zendo'];
-        for (var i = 0; i < brands.length; i++) {
-            var b = brands[i];
-            var count = (pipeline.by_channel || {})[b] || 0;
-            if (count > 0) {
-                html += '<span class="pipe-brand" style="color:' + BRAND_COLORS[b] + '">' +
-                    BRAND_LABELS[b] + ':' + count + '</span>';
-            }
-        }
-
-        sidebar.innerHTML = html;
+        $el.textContent = active + ' active \u00B7 ' + rec + ' rec';
     }
 
     FocusBoard.renderPipeline = renderPipeline;

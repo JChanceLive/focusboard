@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>FocusBoard</title>
-    <link rel="stylesheet" href="style.css?v=14">
+    <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
     <!-- Background nature image -->
@@ -47,8 +47,8 @@
         MAC SYNC OFFLINE - LAST UPDATE <span id="offline-time"></span>
     </div>
 
-    <!-- Pipeline Sidebar (left-aligned, below header) -->
-    <div id="pipeline-sidebar" class="pipeline-sidebar" style="display:none"></div>
+    <!-- Weather Sidebar (left-aligned, below header — replaces pipeline sidebar) -->
+    <div id="weather-sidebar" class="weather-sidebar" style="display:none"></div>
 
     <!-- Habits Sidebar (right-aligned, below header) -->
     <div id="habits-sidebar" class="habits-sidebar" style="display:none">
@@ -58,20 +58,17 @@
 
     <!-- Current Block (Hero) -->
     <section id="current-block" class="current-block">
-        <div id="hero-weather" class="hero-weather"></div>
         <div id="current-icon" class="current-icon"></div>
         <span id="date-label" class="hero-date"></span>
         <div id="hero-clock" class="hero-clock"></div>
-        <div id="current-block-name" class="current-block-name"></div>
-        <div id="current-block-sublabel" class="current-block-sublabel"></div>
 
-        <!-- Hero Info Card -->
-        <div id="hero-card" class="hero-card">
-            <div id="hero-card-fields" class="hero-card-fields"></div>
-            <div id="hero-card-details" class="hero-card-details"></div>
-        </div>
+        <!-- Calendar event stack (from calendar_now) -->
+        <div id="hero-cal-stack" class="hero-cal-stack"></div>
 
-        <div id="current-badge" class="current-badge"></div>
+        <!-- Current block mini chip -->
+        <div id="hero-block-chip" class="hero-block-chip"></div>
+
+        <!-- Behind schedule chip -->
         <div id="current-behind" class="current-behind"></div>
     </section>
 
@@ -82,6 +79,7 @@
     <section id="bottom-zone" class="bottom-zone">
         <div id="bottom-left" class="bottom-left">
             <div class="section-title">SCHEDULE</div>
+            <div id="schedule-banner" class="schedule-banner"></div>
             <div id="schedule-list" class="schedule-list"></div>
             <div id="done-today" class="done-today" style="display:none"></div>
             <div id="daily-log" class="daily-log" style="display:none"></div>
@@ -98,31 +96,32 @@
 
     <!-- Sync Status -->
     <div id="sync-status" class="sync-status">
+        <span id="sync-pipeline" class="sync-pipeline"></span>
         <span id="sync-dot" class="sync-dot"></span>
         <span id="sync-text"></span>
-        <span class="sync-version">v2.4</span>
+        <span class="sync-version">v2.5</span>
     </div>
 
     <!-- Load order: utils first, modules next, app.js last -->
-    <script src="utils.js?v=14"></script>
-    <script src="clock.js?v=14"></script>
-    <script src="schedule.js?v=14"></script>
-    <script src="calendar.js?v=14"></script>
-    <script src="weather.js?v=14"></script>
-    <script src="keystones.js?v=14"></script>
-    <script src="counters.js?v=14"></script>
-    <script src="background.js?v=14"></script>
-    <script src="done-today.js?v=14"></script>
-    <script src="quotes.js?v=14"></script>
-    <script src="recording-ready.js?v=14"></script>
-    <script src="backlog.js?v=14"></script>
-    <script src="tasks.js?v=14"></script>
-    <script src="reminders.js?v=14"></script>
-    <script src="daily-log.js?v=14"></script>
-    <script src="progress.js?v=14"></script>
-    <script src="habits.js?v=14"></script>
-    <script src="pipeline-status.js?v=14"></script>
-    <script src="render.js?v=14"></script>
-    <script src="app.js?v=14"></script>
+    <script src="utils.js?v=15"></script>
+    <script src="clock.js?v=15"></script>
+    <script src="schedule.js?v=15"></script>
+    <script src="calendar.js?v=15"></script>
+    <script src="weather.js?v=15"></script>
+    <script src="keystones.js?v=15"></script>
+    <script src="counters.js?v=15"></script>
+    <script src="background.js?v=15"></script>
+    <script src="done-today.js?v=15"></script>
+    <script src="quotes.js?v=15"></script>
+    <script src="recording-ready.js?v=15"></script>
+    <script src="backlog.js?v=15"></script>
+    <script src="tasks.js?v=15"></script>
+    <script src="reminders.js?v=15"></script>
+    <script src="daily-log.js?v=15"></script>
+    <script src="progress.js?v=15"></script>
+    <script src="habits.js?v=15"></script>
+    <script src="pipeline-status.js?v=15"></script>
+    <script src="render.js?v=15"></script>
+    <script src="app.js?v=15"></script>
 </body>
 </html>

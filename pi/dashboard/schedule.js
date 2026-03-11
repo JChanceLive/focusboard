@@ -39,9 +39,36 @@
 
     // Cached habits data (set by render pass)
     var _habitsData = null;
+    var $scheduleBanner = FocusBoard.$('schedule-banner');
+
+    function renderBanner(blocks) {
+        if (!$scheduleBanner) return;
+        var currentBlock = blocks.find(function (b) { return b.is_current; });
+        if (!currentBlock) {
+            $scheduleBanner.innerHTML = '';
+            return;
+        }
+
+        var color = currentBlock.color || '#3498db';
+        var blockMinutes = parseBlockMinutes(blocks);
+        var currentMin = getCurrentMinutes();
+        var timePos = findTimePosition(blockMinutes, currentMin);
+        var currentIdx = blocks.findIndex(function (b) { return b.is_current; });
+        var behind = (timePos > currentIdx && currentIdx >= 0) ? timePos - currentIdx : 0;
+
+        var html = '<span class="banner-arrow" style="color:' + esc(color) + '">\u25B6</span>';
+        html += '<span class="banner-label">CURRENT:</span>';
+        html += '<span class="banner-block" style="color:' + esc(color) + '">' + esc(currentBlock.block) + '</span>';
+        if (behind > 0) {
+            html += '<span class="banner-behind">' + behind + ' behind</span>';
+        }
+
+        $scheduleBanner.innerHTML = html;
+    }
 
     function renderSchedule(blocks, habits) {
         if (habits !== undefined) _habitsData = habits;
+        renderBanner(blocks);
         $scheduleList.innerHTML = '';
 
         var blockMinutes = parseBlockMinutes(blocks);
@@ -105,6 +132,13 @@
                 }
             }
 
+            // Behind-schedule text below current item
+            var behindHtml = '';
+            if (b.is_current && timePos > currentIdx && currentIdx >= 0) {
+                var skipped = timePos - currentIdx;
+                behindHtml = '<div class="s-behind">' + skipped + ' block' + (skipped > 1 ? 's' : '') + ' behind schedule</div>';
+            }
+
             div.innerHTML =
                 '<span class="s-dot" style="background:' + (b.done ? '#555' : color) + '"></span>' +
                 '<span class="s-icon">' + icon + '</span>' +
@@ -112,7 +146,8 @@
                 '<span class="s-block" style="' + (b.is_current ? 'color:' + color : '') + '">' + esc(b.block) + '</span>' +
                 habitDotsHtml +
                 '<span class="s-task">' + taskText + '</span>' +
-                detailsHtml;
+                detailsHtml +
+                behindHtml;
 
             $scheduleList.appendChild(div);
         }

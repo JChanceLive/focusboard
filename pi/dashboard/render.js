@@ -1,22 +1,18 @@
-// FocusBoard - Hero block rendering
+// FocusBoard - Hero block rendering (v2: calendar-driven)
 (function () {
     'use strict';
 
     var esc = FocusBoard.esc;
     var $currentBlock = FocusBoard.$('current-block');
     var $currentIcon = FocusBoard.$('current-icon');
-    var $currentBlockName = FocusBoard.$('current-block-name');
-    var $currentSublabel = FocusBoard.$('current-block-sublabel');
-    var $currentBadge = FocusBoard.$('current-badge');
     var $currentBehind = FocusBoard.$('current-behind');
     var $dateLabel = FocusBoard.$('date-label');
-    var $heroCard = FocusBoard.$('hero-card');
-    var $heroFields = FocusBoard.$('hero-card-fields');
-    var $heroDetails = FocusBoard.$('hero-card-details');
+    var $heroCalStack = FocusBoard.$('hero-cal-stack');
+    var $heroBlockChip = FocusBoard.$('hero-block-chip');
 
-    // Track previous block for transition detection
-    var prevBlockName = '';
-    var heroElements = [$currentIcon, $currentBlockName, $currentSublabel, $heroCard, $currentBadge, $currentBehind];
+    // Track previous state for transition detection
+    var prevCalTitle = '';
+    var heroElements = [$currentIcon, $heroCalStack, $heroBlockChip, $currentBehind];
 
     function fadeHero(opacity) {
         for (var i = 0; i < heroElements.length; i++) {
@@ -28,105 +24,134 @@
         document.documentElement.style.setProperty('--block-color', color || '#3498db');
     }
 
-    function renderHeroCard(now) {
-        if (!$heroFields) return;
+    // Find block icon by time match (not sequence)
+    function getTimeIcon(blocks) {
+        if (!blocks || !blocks.length) return '';
+        var blockMinutes = FocusBoard.parseBlockMinutes(blocks);
+        var currentMin = FocusBoard.getCurrentMinutes();
+        var timePos = FocusBoard.findTimePosition(blockMinutes, currentMin);
+        if (timePos >= 0 && timePos < blocks.length) {
+            return blocks[timePos].icon || '';
+        }
+        return '';
+    }
 
-        // Uses clear field names (do, from_ref, duration) with legacy fallbacks
+    function renderCalendarStack(calNow) {
+        if (!$heroCalStack) return;
+        if (!calNow || !calNow.length) {
+            $heroCalStack.innerHTML = '';
+            return;
+        }
+
         var html = '';
+        for (var i = 0; i < calNow.length; i++) {
+            var ev = calNow[i];
+            var color = ev.calendar_color || '#3498db';
+            var staleClass = ev.stale ? ' hero-cal-stale' : '';
+            var upcomingClass = ev.upcoming ? ' hero-cal-upcoming' : '';
 
-        var doText = now['do'] || now.file || '';
-        var fromText = now.from_ref || now.task || '';
-        var timeText = now.duration || now.source || '';
+            html += '<div class="hero-cal-event' + staleClass + upcomingClass + '" style="border-left-color:' + esc(color) + '">';
 
-        if (doText && doText !== '--') {
-            html += '<div class="hero-field">' +
-                '<span class="hero-field-value">' + esc(doText) + '</span>' +
-                '</div>';
-        }
-
-        if (fromText && fromText !== '(fixed)' && fromText !== '(protected)') {
-            html += '<div class="hero-field">' +
-                '<span class="hero-field-value small">' + esc(fromText) + '</span>' +
-                '</div>';
-        }
-
-        if (timeText && timeText !== '--') {
-            var timeDisplay = timeText;
-            if (now.time_range) {
-                timeDisplay = timeText + ' \u00B7 ' + now.time_range;
+            if (ev.upcoming) {
+                var minText = ev.starts_in_min !== undefined ? ev.starts_in_min + ' min' : '';
+                html += '<div class="hero-cal-chip">starts in ' + esc(minText) + '</div>';
             }
-            html += '<div class="hero-field">' +
-                '<span class="hero-field-value time">' + esc(timeDisplay) + '</span>' +
-                '</div>';
-        }
 
-        $heroFields.innerHTML = html;
+            html += '<div class="hero-cal-title" style="color:' + esc(color) + '">' + esc(ev.title || '') + '</div>';
+            html += '<div class="hero-cal-time">' + esc(ev.time_range || '') + '</div>';
 
-        // Details (no label, just bullet list)
-        var details = now.details || [];
-        if (details.length > 0 && $heroDetails) {
-            $heroDetails.style.display = '';
-            var dhtml = '';
-            for (var i = 0; i < details.length; i++) {
-                dhtml += '<div class="detail-item">' + esc(details[i]) + '</div>';
+            // Show full_description in hero, fall back to description
+            var desc = ev.full_description || ev.description || '';
+            if (desc) {
+                // Render newlines as line breaks
+                var descLines = desc.split('\n');
+                html += '<div class="hero-cal-desc">';
+                for (var d = 0; d < descLines.length; d++) {
+                    if (descLines[d].trim()) {
+                        html += '<div>' + esc(descLines[d]) + '</div>';
+                    }
+                }
+                html += '</div>';
             }
-            $heroDetails.innerHTML = dhtml;
-        } else if ($heroDetails) {
-            $heroDetails.style.display = 'none';
+
+            html += '</div>';
         }
 
-        if ($heroCard) $heroCard.style.display = '';
+        $heroCalStack.innerHTML = html;
+    }
+
+    function renderBlockChip(state) {
+        if (!$heroBlockChip) return;
+        var now = state.now || {};
+        if (!now.block || now.block === 'Day Complete' || !now.block.trim()) {
+            $heroBlockChip.innerHTML = '';
+            return;
+        }
+
+        var color = now.color || '#3498db';
+        var chipIcon = now.icon || '';
+
+        // Calculate behind-schedule count
+        var blocks = state.blocks || [];
+        var blockMinutes = FocusBoard.parseBlockMinutes(blocks);
+        var currentMin = FocusBoard.getCurrentMinutes();
+        var timePos = FocusBoard.findTimePosition(blockMinutes, currentMin);
+        var currentIdx = blocks.findIndex(function (b) { return b.is_current; });
+        var behind = (timePos > currentIdx && currentIdx >= 0) ? timePos - currentIdx : 0;
+
+        var html = '<span class="chip-icon" style="color:' + esc(color) + '">' + chipIcon + '</span>';
+        html += '<span class="chip-label">' + esc(now.block) + '</span>';
+        if (behind > 0) {
+            html += '<span class="chip-behind">' + behind + ' behind</span>';
+        }
+
+        $heroBlockChip.innerHTML = html;
     }
 
     function renderCurrentBlock(state) {
+        var calNow = state.calendar_now || [];
         var now = state.now || {};
-        var color = now.color || '#3498db';
-        var blockChanged = prevBlockName && prevBlockName !== (now.block || '');
-        prevBlockName = now.block || '';
+        var blocks = state.blocks || [];
 
-        if (blockChanged) {
+        // Determine primary color: first calendar event color, or block color
+        var color = (calNow.length && calNow[0].calendar_color) ? calNow[0].calendar_color : (now.color || '#3498db');
+
+        // Detect change for fade transition
+        var currentTitle = calNow.length ? calNow[0].title : (now.block || '');
+        var changed = prevCalTitle && prevCalTitle !== currentTitle;
+        prevCalTitle = currentTitle;
+
+        if (changed) {
             fadeHero('0');
             setTimeout(function () {
-                applyCurrentBlock(state, now, color);
+                applyCurrentBlock(state, calNow, now, blocks, color);
                 fadeHero('1');
             }, 500);
         } else {
-            applyCurrentBlock(state, now, color);
+            applyCurrentBlock(state, calNow, now, blocks, color);
         }
     }
 
-    function applyCurrentBlock(state, now, color) {
+    function applyCurrentBlock(state, calNow, now, blocks, color) {
         setBlockColor(color);
         $currentBlock.className = 'current-block';
 
-        $currentIcon.textContent = now.icon || '';
-        $currentIcon.style.display = now.icon ? '' : 'none';
-
-        $currentBlockName.textContent = now.block || '';
-
-        // Show active keystone as sublabel (replaces redundant label like "FOUNDATION")
-        var activeKs = (state.keystones || []).find(function (k) { return k.active; });
-        if (activeKs) {
-            $currentSublabel.textContent = '\u25C6 ' + activeKs.id;
-            $currentSublabel.style.display = '';
+        // Icon: block emoji matched by time
+        var icon = getTimeIcon(blocks);
+        if (icon) {
+            $currentIcon.textContent = icon;
+            $currentIcon.style.display = '';
         } else {
-            var labelUpper = (now.label || '').toUpperCase();
-            var blockUpper = (now.block || '').toUpperCase();
-            // Only show label if it's not redundant with block name
-            if (now.label && blockUpper.indexOf(labelUpper) === -1 && labelUpper.indexOf(blockUpper) === -1) {
-                $currentSublabel.textContent = now.label;
-                $currentSublabel.style.display = '';
-            } else {
-                $currentSublabel.style.display = 'none';
-            }
+            $currentIcon.style.display = 'none';
         }
 
-        renderHeroCard(now);
+        // Calendar event stack
+        renderCalendarStack(calNow);
 
-        // Badge cleared - keystone name now shown in sublabel above
-        $currentBadge.textContent = '';
+        // Block mini chip
+        renderBlockChip(state);
 
-        var blocks = state.blocks || [];
+        // Behind schedule on hero
         var blockMinutes = FocusBoard.parseBlockMinutes(blocks);
         var currentMin = FocusBoard.getCurrentMinutes();
         var timePos = FocusBoard.findTimePosition(blockMinutes, currentMin);
@@ -148,11 +173,9 @@
 
         $currentIcon.textContent = '\u2714';
         $currentIcon.style.display = '';
-        $currentBlockName.textContent = 'Day Complete';
-        $currentSublabel.style.display = 'none';
-        $currentBadge.textContent = '';
+        if ($heroCalStack) $heroCalStack.innerHTML = '';
+        if ($heroBlockChip) $heroBlockChip.innerHTML = '';
         $currentBehind.textContent = '';
-        if ($heroCard) $heroCard.style.display = 'none';
 
         // Remove old overlay
         var oldOverlay = $currentBlock.querySelector('.night-legacy-overlay');
@@ -186,11 +209,9 @@
         $currentBlock.className = 'current-block';
         $currentIcon.textContent = '\u25CC';
         $currentIcon.style.display = '';
-        $currentBlockName.textContent = 'Waiting';
-        $currentSublabel.style.display = 'none';
-        $currentBadge.textContent = '';
+        if ($heroCalStack) $heroCalStack.innerHTML = '';
+        if ($heroBlockChip) $heroBlockChip.innerHTML = '';
         $currentBehind.textContent = '';
-        if ($heroCard) $heroCard.style.display = 'none';
     }
 
     function render(state) {
@@ -227,7 +248,7 @@
         FocusBoard.renderReminders(state.reminders || {});
         FocusBoard.renderDailyLog(state.daily_log || {});
         FocusBoard.renderHabits(state.habits || {});
-        FocusBoard.renderPipeline(state.pipeline || {});
+        FocusBoard.renderPipeline(state.meta || {});
         FocusBoard.renderProgress(state.blocks || []);
     }
 

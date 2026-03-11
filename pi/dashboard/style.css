@@ -237,45 +237,42 @@ body.night-mode .night-overlay {
     flex-shrink: 0;
 }
 
-/* ─── Hero Weather (above icon in hero section) ─── */
+/* ─── Weather Sidebar (compact, top-left, replaces pipeline sidebar) ─── */
 
-.hero-weather {
+.weather-sidebar {
+    position: absolute;
+    top: 60px;
+    left: var(--side-padding);
+    z-index: 2;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 16px;
+    gap: 2px;
 }
 
-.hero-weather .weather-main {
+body.night-mode .weather-sidebar {
+    display: none !important;
+}
+
+.ws-main {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
 }
 
-.hero-weather .weather-icon {
-    font-size: 48px;
+.ws-icon {
+    font-size: 28px;
 }
 
-.hero-weather .weather-temp {
-    font-size: 46px;
+.ws-temp {
+    font-size: 28px;
     font-weight: 300;
     color: var(--text-primary);
 }
 
-.hero-weather .weather-details {
-    display: flex;
-    gap: 20px;
-    font-size: 18px;
-    color: #ffffff;
+.ws-details {
+    font-size: 13px;
+    color: var(--text-muted);
     font-weight: 300;
-}
-
-.hero-weather .weather-desc {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.7);
-    text-transform: capitalize;
-    letter-spacing: 1px;
 }
 
 /* ─── Hero Date (centered above clock) ─── */
@@ -356,86 +353,106 @@ body.night-mode .night-overlay {
     transition: color 0.5s ease;
 }
 
-/* ─── Hero Info Card ─── */
+/* ─── Hero Calendar Event Stack ─── */
 
-.hero-card {
-    margin-top: 18px;
-    padding: 16px 28px;
+.hero-cal-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.hero-cal-event {
+    width: 100%;
+    padding: 14px 24px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--border-subtle);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    width: auto;
-    max-width: 520px;
-    min-width: 320px;
+    border-left: 4px solid var(--block-color);
+    border-radius: 10px;
     text-align: center;
 }
 
-.hero-card-fields {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
+.hero-cal-event.hero-cal-stale {
+    opacity: 0.45;
 }
 
-.hero-field {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
+.hero-cal-event.hero-cal-upcoming {
+    opacity: 0.7;
 }
 
-.hero-field-value {
-    font-size: 20px;
-    font-weight: 300;
-    color: var(--text-primary);
-    line-height: 1.3;
-    text-align: center;
-}
-
-.hero-field-value.small {
-    font-size: 14px;
-    color: var(--text-muted);
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-}
-
-.hero-field-value.time {
-    font-size: 18px;
+.hero-cal-chip {
+    font-size: 13px;
     font-weight: 600;
+    color: #f39c12;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.hero-cal-title {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.2;
     color: var(--block-color);
 }
 
-.hero-card-details {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border-subtle);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
+.hero-cal-time {
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 1px;
 }
 
-.hero-card-details .detail-item {
-    font-size: 15px;
+.hero-cal-desc {
+    font-size: 16px;
     font-weight: 300;
     color: var(--text-secondary);
-    letter-spacing: 0.5px;
-    text-align: center;
+    line-height: 1.5;
+    margin-top: 10px;
+    text-align: left;
+    max-height: 120px;
+    overflow-y: auto;
 }
 
-.hero-card-details .detail-item::before {
-    content: '\25AA';
-    margin-right: 8px;
-    color: var(--block-color);
-    transition: color 0.5s ease;
+.hero-cal-desc::-webkit-scrollbar {
+    display: none;
 }
 
-.current-badge {
+/* ─── Hero Block Mini Chip ─── */
+
+.hero-block-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 14px;
+}
+
+.hero-block-chip .chip-icon {
     font-size: 16px;
+}
+
+.hero-block-chip .chip-label {
     font-weight: 600;
-    color: var(--block-color);
-    margin-top: 8px;
+    color: var(--text-secondary);
     letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.hero-block-chip .chip-behind {
+    font-weight: 600;
+    color: #e67e22;
+    font-size: 13px;
 }
 
 /* Day Complete state */
@@ -1191,47 +1208,71 @@ body.night-mode .progress-bar {
 /* ─── Smooth Hero Transitions ─── */
 
 .current-icon,
-.current-block-name,
-.current-block-sublabel,
-.current-task,
-.current-file,
-.current-badge,
-.current-behind,
-.current-details {
+.hero-cal-stack,
+.hero-block-chip,
+.current-behind {
     transition: opacity 0.5s ease;
 }
 
-/* ─── Pipeline Sidebar (left-aligned, below header) ─── */
+/* ─── Schedule Banner (above schedule list) ─── */
 
-.pipeline-sidebar {
-    position: absolute;
-    top: 60px;
-    left: var(--side-padding);
-    z-index: 2;
+.schedule-banner {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-body.night-mode .pipeline-sidebar {
-    display: none !important;
-}
-
-.pipe-stat {
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    margin-bottom: 4px;
     font-size: 13px;
+    flex-shrink: 0;
+}
+
+.schedule-banner .banner-arrow {
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.schedule-banner .banner-label {
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.schedule-banner .banner-block {
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.schedule-banner .banner-behind {
+    font-weight: 600;
+    color: #e67e22;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* ─── Behind Schedule (inline under current schedule item) ─── */
+
+.s-behind {
+    width: 100%;
+    padding-left: 52px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #e67e22;
+    margin-bottom: 2px;
+}
+
+/* ─── Pipeline in Sync Footer ─── */
+
+.sync-pipeline {
+    position: absolute;
+    left: var(--side-padding);
+    font-size: 12px;
     font-weight: 400;
     color: var(--text-muted);
-}
-
-.pipe-val {
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}
-
-.pipe-brand {
-    font-size: 12px;
-    font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
 
