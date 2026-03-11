@@ -416,8 +416,27 @@ body.night-mode .weather-sidebar {
     line-height: 1.5;
     margin-top: 10px;
     text-align: left;
-    max-height: 120px;
+    max-height: 200px;
     overflow-y: auto;
+}
+
+/* Full-day timed events (23+ hours) rendered compact in hero */
+.hero-cal-event.hero-cal-allday {
+    padding: 8px 24px;
+    opacity: 0.6;
+}
+
+.hero-cal-allday .hero-cal-title {
+    font-size: 20px;
+}
+
+.hero-cal-allday .hero-cal-time {
+    display: none;
+}
+
+.hero-cal-allday .hero-cal-desc {
+    font-size: 14px;
+    max-height: 60px;
 }
 
 .hero-cal-desc::-webkit-scrollbar {
@@ -612,6 +631,16 @@ body.night-mode .weather-sidebar {
     margin-right: -2px;
 }
 
+/* Elapsed time on current block */
+.s-elapsed {
+    display: block;
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--text-muted);
+    opacity: 0.7;
+    line-height: 1;
+}
+
 /* Skipped (unchecked but time has passed) */
 .schedule-item.skipped .s-icon { color: #e67e22; font-size: 12px; }
 .schedule-item.skipped .s-block { color: #e67e22; opacity: 0.7; }
@@ -708,6 +737,30 @@ body.night-mode .weather-sidebar {
 
 .cal-event.all-day {
     border-left-color: var(--done);
+}
+
+/* Calendar NOW badge (pulsing indicator on active events) */
+.cal-event.cal-now {
+    background: rgba(52, 152, 219, 0.08);
+}
+
+.cal-now-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--current);
+    background: rgba(52, 152, 219, 0.2);
+    padding: 1px 6px;
+    border-radius: 6px;
+    margin-left: 8px;
+    vertical-align: middle;
+    animation: pulse-now 2s ease-in-out infinite;
+}
+
+@keyframes pulse-now {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
 }
 
 .cal-empty {

@@ -35,14 +35,89 @@ from log import get_logger
 logger = get_logger("main")
 
 
+# ─── Calendar Icon Mapping ────────────────────────────────────────────────────
+
+# Keyword -> icon mapping for calendar event titles
+_ICON_MAP = [
+    # Morning / Foundation
+    ("morning", "\u2600"),       # ☀
+    ("foundation", "\u2600"),
+    ("rise", "\u2600"),
+    # Creation / Recording
+    ("creation", "\u270F"),      # ✏
+    ("record", "\U0001F3A4"),    # 🎤
+    ("batch", "\U0001F4E6"),     # 📦
+    # Execution / Work
+    ("execution", "\u26A1"),     # ⚡
+    ("power hour", "\u26A1"),
+    ("deep work", "\u26A1"),
+    ("pro gear", "\u2699"),      # ⚙
+    # Reset / Break
+    ("reset", "\u23F8"),         # ⏸
+    ("break", "\u23F8"),
+    ("midday", "\u23F8"),
+    # Health / Movement
+    ("movement", "\U0001F3C3"),  # 🏃
+    ("workout", "\U0001F4AA"),   # 💪
+    ("health", "\u2764"),        # ❤
+    # Family / Personal
+    ("family", "\U0001F46A"),    # 👪
+    ("dinner", "\U0001F37D"),    # 🍽
+    # Evening / Wind-down
+    ("evening", "\U0001F319"),   # 🌙
+    ("wind", "\U0001F319"),
+    ("night", "\U0001F319"),
+    ("restore", "\U0001F319"),
+    # System / Dev
+    ("system", "\U0001F527"),    # 🔧
+    ("dev", "\U0001F4BB"),       # 💻
+    ("lab", "\U0001F52C"),       # 🔬
+    # Research
+    ("research", "\U0001F4DA"),  # 📚
+    # Sacred / Protected
+    ("sacred", "\u2728"),        # ✨
+]
+
+
+def _map_icon(title: str) -> str:
+    """Map a calendar event title to an emoji icon via keyword lookup."""
+    lower = title.lower()
+    for keyword, icon in _ICON_MAP:
+        if keyword in lower:
+            return icon
+    return "\U0001F4C5"  # 📅 default calendar icon
+
+
 # ─── Calendar Now ─────────────────────────────────────────────────────────────
+
+def _build_entry(event: dict, start, end, **extra) -> dict:
+    """Build a calendar_now entry dict."""
+    entry = {
+        "title": event.get("title", ""),
+        "icon": _map_icon(event.get("title", "")),
+        "description": event.get("description", ""),
+        "full_description": event.get("full_description", event.get("description", "")),
+        "start": event.get("start", ""),
+        "end": event.get("end", ""),
+        "calendar_label": event.get("calendar_label", ""),
+        "calendar_color": event.get("calendar_color", ""),
+        "calendar_emoji": event.get("calendar_emoji", ""),
+        "time_range": _format_time_range(start, end),
+    }
+    # Detect full-day timed events (23+ hours with dateTime fields)
+    duration_hours = (end - start).total_seconds() / 3600
+    if duration_hours >= 23:
+        entry["all_day_timed"] = True
+    entry.update(extra)
+    return entry
+
 
 def compute_calendar_now(calendar_events: list[dict], now: datetime) -> list[dict]:
     """Compute currently active calendar events based on wall-clock time.
 
     Returns active events (start <= now < end), or the next upcoming event
     with an 'upcoming' flag and 'starts_in_min' countdown if no active events.
-    Skips all-day events.
+    Skips all-day events. Full-day timed events (23+ hours) sorted last.
     """
     active = []
     upcoming = []
@@ -58,37 +133,16 @@ def compute_calendar_now(calendar_events: list[dict], now: datetime) -> list[dic
             continue
 
         if start <= now < end:
-            entry = {
-                "title": event.get("title", ""),
-                "description": event.get("description", ""),
-                "full_description": event.get("full_description", event.get("description", "")),
-                "start": event.get("start", ""),
-                "end": event.get("end", ""),
-                "calendar_label": event.get("calendar_label", ""),
-                "calendar_color": event.get("calendar_color", ""),
-                "calendar_emoji": event.get("calendar_emoji", ""),
-                "time_range": _format_time_range(start, end),
-            }
-            active.append(entry)
+            active.append(_build_entry(event, start, end))
         elif now >= end and (now - end).total_seconds() <= 300:
             # Event ended within last 5 min — show dimmed so hero doesn't go blank
-            entry = {
-                "title": event.get("title", ""),
-                "description": event.get("description", ""),
-                "full_description": event.get("full_description", event.get("description", "")),
-                "start": event.get("start", ""),
-                "end": event.get("end", ""),
-                "calendar_label": event.get("calendar_label", ""),
-                "calendar_color": event.get("calendar_color", ""),
-                "calendar_emoji": event.get("calendar_emoji", ""),
-                "time_range": _format_time_range(start, end),
-                "stale": True,
-            }
-            active.append(entry)
+            active.append(_build_entry(event, start, end, stale=True))
         elif start > now:
             upcoming.append((start, event))
 
     if active:
+        # Sort: real timed events first, full-day timed events last
+        active.sort(key=lambda e: (1 if e.get("all_day_timed") else 0))
         return active
 
     # No active events — find next upcoming
@@ -100,19 +154,7 @@ def compute_calendar_now(calendar_events: list[dict], now: datetime) -> list[dic
         except (ValueError, KeyError):
             end = next_start
         mins = max(0, round((next_start - now).total_seconds() / 60))
-        return [{
-            "title": next_event.get("title", ""),
-            "description": next_event.get("description", ""),
-            "full_description": next_event.get("full_description", next_event.get("description", "")),
-            "start": next_event.get("start", ""),
-            "end": next_event.get("end", ""),
-            "calendar_label": next_event.get("calendar_label", ""),
-            "calendar_color": next_event.get("calendar_color", ""),
-            "calendar_emoji": next_event.get("calendar_emoji", ""),
-            "time_range": _format_time_range(next_start, end),
-            "upcoming": True,
-            "starts_in_min": mins,
-        }]
+        return [_build_entry(next_event, next_start, end, upcoming=True, starts_in_min=mins)]
 
     return []
 

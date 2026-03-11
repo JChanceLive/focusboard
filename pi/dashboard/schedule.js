@@ -139,10 +139,19 @@
                 behindHtml = '<div class="s-behind">' + skipped + ' block' + (skipped > 1 ? 's' : '') + ' behind schedule</div>';
             }
 
+            // "started Xm ago" for current block
+            var elapsedHtml = '';
+            if (b.is_current) {
+                var elapsed = currentMin - blockMinutes[i];
+                if (elapsed > 0) {
+                    elapsedHtml = '<span class="s-elapsed">' + elapsed + 'm ago</span>';
+                }
+            }
+
             div.innerHTML =
                 '<span class="s-dot" style="background:' + (b.done ? '#555' : color) + '"></span>' +
                 '<span class="s-icon">' + icon + '</span>' +
-                '<span class="s-time">' + esc(b.time) + '</span>' +
+                '<span class="s-time">' + esc(b.time) + elapsedHtml + '</span>' +
                 '<span class="s-block" style="' + (b.is_current ? 'color:' + color : '') + '">' + esc(b.block) + '</span>' +
                 habitDotsHtml +
                 '<span class="s-task">' + taskText + '</span>' +

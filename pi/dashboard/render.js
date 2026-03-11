@@ -49,8 +49,9 @@
             var color = ev.calendar_color || '#3498db';
             var staleClass = ev.stale ? ' hero-cal-stale' : '';
             var upcomingClass = ev.upcoming ? ' hero-cal-upcoming' : '';
+            var alldayClass = ev.all_day_timed ? ' hero-cal-allday' : '';
 
-            html += '<div class="hero-cal-event' + staleClass + upcomingClass + '" style="border-left-color:' + esc(color) + '">';
+            html += '<div class="hero-cal-event' + staleClass + upcomingClass + alldayClass + '" style="border-left-color:' + esc(color) + '">';
 
             if (ev.upcoming) {
                 var minText = ev.starts_in_min !== undefined ? ev.starts_in_min + ' min' : '';
@@ -136,8 +137,8 @@
         setBlockColor(color);
         $currentBlock.className = 'current-block';
 
-        // Icon: block emoji matched by time
-        var icon = getTimeIcon(blocks);
+        // Icon: calendar event icon first, fall back to block emoji by time
+        var icon = (calNow.length && calNow[0].icon) ? calNow[0].icon : getTimeIcon(blocks);
         if (icon) {
             $currentIcon.textContent = icon;
             $currentIcon.style.display = '';
@@ -237,7 +238,7 @@
         }
 
         FocusBoard.renderSchedule(state.blocks || [], state.habits || {});
-        FocusBoard.renderCalendar(state.calendar || [], state.calendar_legend || []);
+        FocusBoard.renderCalendar(state.calendar || [], state.calendar_legend || [], state.calendar_now || []);
         FocusBoard.renderWeather(state.weather || {});
         FocusBoard.renderKeystones(state.keystones || []);
         FocusBoard.renderDoneToday(state.done_today || []);

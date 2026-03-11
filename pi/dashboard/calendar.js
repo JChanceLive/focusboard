@@ -41,7 +41,7 @@
         $calendarList.parentNode.insertBefore(bar, $calendarList);
     }
 
-    function renderCalendar(events, legend) {
+    function renderCalendar(events, legend, calendarNow) {
         $calendarList.innerHTML = '';
 
         renderLegend(legend);
@@ -52,6 +52,16 @@
             empty.textContent = 'No upcoming events';
             $calendarList.appendChild(empty);
             return;
+        }
+
+        // Build set of "now" event titles for matching
+        var nowTitles = {};
+        if (calendarNow) {
+            for (var n = 0; n < calendarNow.length; n++) {
+                if (!calendarNow[n].upcoming) {
+                    nowTitles[calendarNow[n].title] = true;
+                }
+            }
         }
 
         var today = new Date();
@@ -91,8 +101,10 @@
                 currentGroup = groupLabel;
             }
 
+            var isNow = nowTitles[evt.title] || false;
+
             var card = document.createElement('div');
-            card.className = 'cal-event' + (evt.all_day ? ' all-day' : '');
+            card.className = 'cal-event' + (evt.all_day ? ' all-day' : '') + (isNow ? ' cal-now' : '');
 
             // Apply calendar color to left border
             if (calColor) {
@@ -120,8 +132,10 @@
                 ? '<span class="cal-desc">' + esc(evt.description) + '</span>'
                 : '';
 
+            var nowBadge = isNow ? '<span class="cal-now-badge">NOW</span>' : '';
+
             card.innerHTML = timeHtml +
-                '<span class="cal-title"' + titleStyle + '>' + esc(evt.title) + '</span>' +
+                '<span class="cal-title"' + titleStyle + '>' + esc(evt.title) + nowBadge + '</span>' +
                 locationHtml + descHtml;
 
             $calendarList.appendChild(card);
