@@ -163,10 +163,9 @@ def fetch_google_calendar(config: dict) -> tuple[list[dict], list[dict]]:
                     end = item.get("end", {})
                     all_day = "date" in start and "dateTime" not in start
 
-                    desc = item.get("description", "").strip()
-                    # Truncate long descriptions
-                    if len(desc) > 120:
-                        desc = desc[:117] + "..."
+                    full_desc = item.get("description", "").strip()
+                    # Truncate long descriptions for calendar list display
+                    desc = full_desc[:117] + "..." if len(full_desc) > 120 else full_desc
 
                     event_data = {
                         "title": item.get("summary", "(No title)"),
@@ -175,6 +174,7 @@ def fetch_google_calendar(config: dict) -> tuple[list[dict], list[dict]]:
                         "all_day": all_day,
                         "location": item.get("location", ""),
                         "description": desc,
+                        "full_description": full_desc,
                         "calendar_label": cal_label,
                         "calendar_emoji": cal_emoji,
                         "calendar_color": cal_color,

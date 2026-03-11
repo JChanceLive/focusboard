@@ -35,6 +35,94 @@ from log import get_logger
 logger = get_logger("main")
 
 
+# ─── Calendar Now ─────────────────────────────────────────────────────────────
+
+def compute_calendar_now(calendar_events: list[dict], now: datetime) -> list[dict]:
+    """Compute currently active calendar events based on wall-clock time.
+
+    Returns active events (start <= now < end), or the next upcoming event
+    with an 'upcoming' flag and 'starts_in_min' countdown if no active events.
+    Skips all-day events.
+    """
+    active = []
+    upcoming = []
+
+    for event in calendar_events:
+        if event.get("all_day"):
+            continue
+
+        try:
+            start = datetime.fromisoformat(event["start"])
+            end = datetime.fromisoformat(event["end"])
+        except (ValueError, KeyError):
+            continue
+
+        if start <= now < end:
+            entry = {
+                "title": event.get("title", ""),
+                "description": event.get("description", ""),
+                "full_description": event.get("full_description", event.get("description", "")),
+                "start": event.get("start", ""),
+                "end": event.get("end", ""),
+                "calendar_label": event.get("calendar_label", ""),
+                "calendar_color": event.get("calendar_color", ""),
+                "calendar_emoji": event.get("calendar_emoji", ""),
+                "time_range": _format_time_range(start, end),
+            }
+            active.append(entry)
+        elif now >= end and (now - end).total_seconds() <= 300:
+            # Event ended within last 5 min — show dimmed so hero doesn't go blank
+            entry = {
+                "title": event.get("title", ""),
+                "description": event.get("description", ""),
+                "full_description": event.get("full_description", event.get("description", "")),
+                "start": event.get("start", ""),
+                "end": event.get("end", ""),
+                "calendar_label": event.get("calendar_label", ""),
+                "calendar_color": event.get("calendar_color", ""),
+                "calendar_emoji": event.get("calendar_emoji", ""),
+                "time_range": _format_time_range(start, end),
+                "stale": True,
+            }
+            active.append(entry)
+        elif start > now:
+            upcoming.append((start, event))
+
+    if active:
+        return active
+
+    # No active events — find next upcoming
+    if upcoming:
+        upcoming.sort(key=lambda x: x[0])
+        next_start, next_event = upcoming[0]
+        try:
+            end = datetime.fromisoformat(next_event["end"])
+        except (ValueError, KeyError):
+            end = next_start
+        mins = max(0, round((next_start - now).total_seconds() / 60))
+        return [{
+            "title": next_event.get("title", ""),
+            "description": next_event.get("description", ""),
+            "full_description": next_event.get("full_description", next_event.get("description", "")),
+            "start": next_event.get("start", ""),
+            "end": next_event.get("end", ""),
+            "calendar_label": next_event.get("calendar_label", ""),
+            "calendar_color": next_event.get("calendar_color", ""),
+            "calendar_emoji": next_event.get("calendar_emoji", ""),
+            "time_range": _format_time_range(next_start, end),
+            "upcoming": True,
+            "starts_in_min": mins,
+        }]
+
+    return []
+
+
+def _format_time_range(start: datetime, end: datetime) -> str:
+    """Format a time range like '12:30 PM - 3:00 PM'."""
+    fmt = "%-I:%M %p"
+    return f"{start.strftime(fmt)} - {end.strftime(fmt)}"
+
+
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 def generate_state() -> dict:
@@ -68,6 +156,7 @@ def generate_state() -> dict:
     # Handle missing TODAY.md
     if not today_content:
         cal_events, cal_legend = fetch_google_calendar(config)
+        calendar_now = compute_calendar_now(cal_events, now)
         return {
             "generated_at": now.isoformat(),
             "date": now.strftime("%Y-%m-%d"),
@@ -91,8 +180,14 @@ def generate_state() -> dict:
             "quote": get_quote(philosophy_content),
             "calendar": cal_events,
             "calendar_legend": cal_legend,
+            "calendar_now": calendar_now,
             "weather": fetch_weather(config),
-            "meta": {"sync_version": 2, "no_schedule": True},
+            "meta": {
+                "sync_version": 2,
+                "no_schedule": True,
+                "pipeline_active": pipeline.get("total_active", 0),
+                "pipeline_rec_ready": pipeline.get("ready_to_record", 0),
+            },
         }
 
     # Parse TODAY.md sections
@@ -189,6 +284,7 @@ def generate_state() -> dict:
 
     # Fetch external data
     calendar_events, calendar_legend = fetch_google_calendar(config)
+    calendar_now = compute_calendar_now(calendar_events, now)
     weather = fetch_weather(config)
 
     # Fetch keystone streaks from PiPulse API (enriches keystones in-place)
@@ -219,11 +315,14 @@ def generate_state() -> dict:
         "quote": quote,
         "calendar": calendar_events,
         "calendar_legend": calendar_legend,
+        "calendar_now": calendar_now,
         "weather": weather,
         "meta": {
             "sync_version": 2,
             "no_schedule": len(blocks) == 0,
             "all_done": all_done,
+            "pipeline_active": pipeline.get("total_active", 0),
+            "pipeline_rec_ready": pipeline.get("ready_to_record", 0),
         },
     }
 
