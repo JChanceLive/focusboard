@@ -30,8 +30,10 @@ scp -o ConnectTimeout=5 \
     "$SCRIPT_DIR/pi/config/"* \
     "$PI_HOST:$PI_BASE/config/"
 
-# Restart Chromium to pick up new files (clears cache)
+# Restart services to pick up new files
 echo "Restarting focusboard service..."
 ssh -o ConnectTimeout=5 "$PI_HOST" "sudo systemctl restart focusboard" 2>/dev/null \
-    && echo "Done. Dashboard is live." \
-    || echo "Warning: restart failed (Pi may need manual restart)"
+    && echo "  focusboard (kiosk): restarted" \
+    || echo "  Warning: focusboard restart failed"
+
+echo "Done. Dashboard is live."

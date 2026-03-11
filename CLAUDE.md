@@ -85,27 +85,36 @@ which the Pi didn't recognize. Fixed 2026-02-21 by adding `id_ed25519` to author
 <!-- MEMORY:START -->
 # focusboard
 
-_Last updated: 2026-03-01 | 12 active memories, 13 total_
+_Last updated: 2026-03-11 | 24 active memories, 48 total_
 
 ## Key Decisions
-- FocusBoard visual review deferred to fresh window: Session 1 handles backend rewrite + git commit; Session 2 in new c... [focusboard, ui-review, session-planning, multi-window]
 - FocusBoard keystone completion loop redesign prioritizes visual feedback over binary done-checking: render active key... [focusboard, keystones, ux-design, motivation]
-- FocusBoard project pivoted from original UPGRADE-PLAN-V2.md (9-session calendar/tasks/log roadmap) to keystones redes... [focusboard, keystones, planning, pivot, scope]
+- FocusBoard persistent journald logging requires removing Raspberry Pi OS drop-in override (/usr/lib/systemd/journald.... [focusboard, systemd, journald, logging, pi-os]
+- FocusBoard visual review workflow uses multi-session pattern: backend changes (state generation, Git commits) complet... [focusboard, ui-review, workflow, multi-session]
+- FocusBoard PiCam Live View shelved at S2 with explicit git tags (focusboard-picam-live-v1 for main branch state, pica... [focusboard, picam, git-workflow, shelving-strategy, hardware-dependent]
 
 ## Patterns & Conventions
 - Pi project Git workflow applies to terminal ecosystem: gitignore standardization includes .mcp.json/.claude/ to preve... [git, terminal, pi-projects, ecosystem, workflow]
 - FocusBoard keystones array in state.json is dynamically built from keystones.yaml keys (no hardcoded K1-K9); streaks ... [focusboard, state-management, json-contract]
-- FocusBoard state.json generation uses absolute paths for all file reads (TODAY.md, keystones.yaml, focus.md, philosop... [focusboard, testing, launchd, state-management]
 - FocusBoard time range calculation: start_time from current_block['time'], end_time from next block's start time; form... [focusboard, time-display, state-generation, ui-pattern]
+- FocusBoard network watchdog implementation uses systemd timer (5-min interval) calling shell script that checks WiFi ... [focusboard, systemd, network-monitoring, watchdog]
+- FocusBoard PiCam live view testing workflow: coordinate with user synchronously (ask user to watch display BEFORE run... [focusboard, picam, testing, workflow, coordination]
+- Git preservation strategy for shelved features: tag both source and dependent repos before cleanup (e.g., git tag foc... [git, workflow, shelving, preservation, multi-repo]
+- FocusBoard project documentation uses three-tier architecture: ARCH-PICAM-LIVE-VIEW.md (technical deep-dive with sess... [focusboard, documentation, project-structure, multi-file-coordination]
+- FocusBoard PiCam daemon architecture uses signal-based control: SIGUSR1 spawns mpv overlay with 30-second auto-revert... [focusboard, picam, daemon, mpv, signal-handling, optimization, deployment]
+- FocusBoard Phase 2 frontend now uses absolute positioning for weather-sidebar (right edge, portrait layout) rather th... [focusboard, css-layout, positioning, frontend-pattern]
 
 ## Gotchas & Pitfalls
 - launchd cron job (2-min interval) overwrites state.json while developer is testing locally; manual generate_state.py ... [focusboard, launchd, testing, timing]
 - FocusBoard 'Sequence > Time' rule means current block is always first unchecked item (not based on wall-clock time), ... [focusboard, keystones, block-tracking, sequence-rule]
+- Remote heredoc execution through SSH fails with zsh shell; working around by writing files locally (/tmp/network-watc... [focusboard, ssh, shell-scripting, deployment]
+- FocusBoard motion daemon refresh signal (SIGUSR1) can be sent multiple times during a single motion event if motion >... [focusboard, picam, signal-handling, motion-detection, debugging]
+- FocusBoard calendar hero state.json contract requires calendar_now object with current_event and next_event populated... [focusboard, state-management, json-contract, edge-cases]
 
 ## Current Progress
-- All 33 git repos audited 2026-03-01: 23 clean, 8 dirty repos committed and pushed to GitHub (/.claude: 21 files, pipu... [git, ecosystem, cleanup, infrastructure]
-- FocusBoard Session 2 in progress: designed keystone completion loop redesign (color states, progress meter, daily goa... [focusboard, keystones, session-planning, design-phase]
-- Brainstorm prep initiated: reviewing ARCH-KEYSTONES-FOCUSBOARD-REDESIGN.md Section 6 (completion loop architecture) a... [focusboard, brainstorm-prep, completion-loop, architecture-planning]
+- FocusBoard Hero Redesign Phase 2 visual review COMPLETE (2026-03-11): Day/night mode toggle tested and confirmed work... [focusboard, hero-redesign, phase-2-complete, visual-review, deployment, verified]
+- FocusBoard Hero Redesign Phase 2 COMPLETE: Frontend restructured with calendar-driven hero (current_event + next_even... [focusboard, hero-redesign, frontend, phase-2-complete, ui-implementation]
+- FocusBoard PiCam Live View S2 SHELVED (2026-03-10): Session 2 optimization (snapshot pause + mpv reuse + grace timer)... [focusboard, picam, s2-complete, shelved, hardware-constraint, restoration-documented]
 
 _For deeper context, use memory_search, memory_related, or memory_ask tools._
 <!-- MEMORY:END -->
