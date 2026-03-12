@@ -1,0 +1,15 @@
+[Unit]
+Description=FocusBoard Camera Controller
+After=focusboard.service mediamtx.service
+
+[Service]
+Type=simple
+User=__USER__
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStart=/usr/bin/python3 /home/__USER__/focusboard/scripts/focusboard-cam.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

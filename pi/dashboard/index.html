@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     <title>FocusBoard</title>
-    <link rel="stylesheet" href="style.css?v=15">
+    <link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
     <!-- Background nature image -->
@@ -58,18 +58,22 @@
 
     <!-- Current Block (Hero) -->
     <section id="current-block" class="current-block">
-        <div id="current-icon" class="current-icon"></div>
-        <span id="date-label" class="hero-date"></span>
+        <div id="date-label" class="hero-date"></div>
         <div id="hero-clock" class="hero-clock"></div>
 
-        <!-- Calendar event stack (from calendar_now) -->
-        <div id="hero-cal-stack" class="hero-cal-stack"></div>
+        <!-- Primary: TODAY.md block -->
+        <div id="hero-primary">
+            <div id="hero-title-row">
+                <span id="hero-icon"></span>
+                <span id="hero-block-name"></span>
+            </div>
+            <div id="hero-time-info"></div>
+            <div id="hero-details"></div>
+            <div id="hero-behind"></div>
+        </div>
 
-        <!-- Current block mini chip -->
-        <div id="hero-block-chip" class="hero-block-chip"></div>
-
-        <!-- Behind schedule chip -->
-        <div id="current-behind" class="current-behind"></div>
+        <!-- Secondary: Personal calendar event (optional) -->
+        <div id="hero-personal-event"></div>
     </section>
 
     <!-- Quote Bar (between hero and bottom zone) -->
@@ -103,25 +107,25 @@
     </div>
 
     <!-- Load order: utils first, modules next, app.js last -->
-    <script src="utils.js?v=15"></script>
-    <script src="clock.js?v=15"></script>
-    <script src="schedule.js?v=15"></script>
-    <script src="calendar.js?v=15"></script>
-    <script src="weather.js?v=15"></script>
-    <script src="keystones.js?v=15"></script>
-    <script src="counters.js?v=15"></script>
-    <script src="background.js?v=15"></script>
-    <script src="done-today.js?v=15"></script>
-    <script src="quotes.js?v=15"></script>
-    <script src="recording-ready.js?v=15"></script>
-    <script src="backlog.js?v=15"></script>
-    <script src="tasks.js?v=15"></script>
-    <script src="reminders.js?v=15"></script>
-    <script src="daily-log.js?v=15"></script>
-    <script src="progress.js?v=15"></script>
-    <script src="habits.js?v=15"></script>
-    <script src="pipeline-status.js?v=15"></script>
-    <script src="render.js?v=15"></script>
-    <script src="app.js?v=15"></script>
+    <script src="utils.js?v=16"></script>
+    <script src="clock.js?v=16"></script>
+    <script src="schedule.js?v=16"></script>
+    <script src="calendar.js?v=16"></script>
+    <script src="weather.js?v=16"></script>
+    <script src="keystones.js?v=16"></script>
+    <script src="counters.js?v=16"></script>
+    <script src="background.js?v=16"></script>
+    <script src="done-today.js?v=16"></script>
+    <script src="quotes.js?v=16"></script>
+    <script src="recording-ready.js?v=16"></script>
+    <script src="backlog.js?v=16"></script>
+    <script src="tasks.js?v=16"></script>
+    <script src="reminders.js?v=16"></script>
+    <script src="daily-log.js?v=16"></script>
+    <script src="progress.js?v=16"></script>
+    <script src="habits.js?v=16"></script>
+    <script src="pipeline-status.js?v=16"></script>
+    <script src="render.js?v=16"></script>
+    <script src="app.js?v=16"></script>
 </body>
 </html>

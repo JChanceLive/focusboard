@@ -165,6 +165,43 @@ def _format_time_range(start: datetime, end: datetime) -> str:
     return f"{start.strftime(fmt)} - {end.strftime(fmt)}"
 
 
+# ─── Hero Personal Event ─────────────────────────────────────────────────────
+
+def _get_hero_personal_event(cal_now: list[dict]) -> dict | None:
+    """Return a single Personal calendar event for the hero, or None.
+
+    Filters calendar_now for events from the 'Personal' calendar,
+    excluding all_day_timed, upcoming, and stale entries.
+    """
+    for ev in cal_now:
+        if ev.get("calendar_label") != "Personal":
+            continue
+        if ev.get("all_day_timed") or ev.get("upcoming") or ev.get("stale"):
+            continue
+        return ev
+    return None
+
+
+def _parse_block_minutes(blocks: list[dict]) -> list[int]:
+    """Convert block times to minutes since midnight, with AM/PM wrap-around.
+
+    Mirrors the JS parseBlockMinutes logic: if a time is less than the previous
+    and the hour is < 12, add 12 hours (e.g., "8:00" after "6:00 PM" = 20:00).
+    """
+    result = []
+    prev = 0
+    for b in blocks:
+        parts = b["time"].split(":")
+        h = int(parts[0])
+        m = int(parts[1])
+        total = h * 60 + m
+        if total < prev and h < 12:
+            total += 12 * 60
+        prev = total
+        result.append(total)
+    return result
+
+
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 def generate_state() -> dict:
@@ -223,6 +260,7 @@ def generate_state() -> dict:
             "calendar": cal_events,
             "calendar_legend": cal_legend,
             "calendar_now": calendar_now,
+            "hero_calendar_event": _get_hero_personal_event(calendar_now),
             "weather": fetch_weather(config),
             "meta": {
                 "sync_version": 2,
@@ -244,38 +282,55 @@ def generate_state() -> dict:
         if block["time"] in tracker:
             block["done"] = tracker[block["time"]]
 
-    # Determine current block (first unchecked)
-    current_block = None
+    # Mark first unchecked block for schedule list rendering
     for block in blocks:
         if not block["done"]:
             block["is_current"] = True
-            current_block = block
             break
 
-    # Build now section
-    # Clear field names: do = what to work on, from_ref = source file, duration = time
-    # Legacy fields (task, file, source) kept for backwards compat with schedule.js
-    if current_block:
-        # Compute time range: start time from current block, end from next block
-        current_idx = blocks.index(current_block)
-        time_range = current_block["time"]
-        if current_idx + 1 < len(blocks):
-            time_range = current_block["time"] + " - " + blocks[current_idx + 1]["time"]
+    # Determine hero block by wall-clock time (not first unchecked)
+    now_minutes = now.hour * 60 + now.minute
+    hero_block = None
+    hero_idx = -1
+    if blocks:
+        block_mins = _parse_block_minutes(blocks)
+        for i in range(len(block_mins)):
+            if now_minutes >= block_mins[i]:
+                hero_idx = i
+        if hero_idx >= 0:
+            hero_block = blocks[hero_idx]
+
+    # Build now section from time-based hero block
+    if hero_block:
+        time_range = hero_block["time"]
+        block_start_min = block_mins[hero_idx]
+
+        if hero_idx + 1 < len(blocks):
+            next_time = blocks[hero_idx + 1]["time"]
+            time_range = hero_block["time"] + " - " + next_time
+            next_min = block_mins[hero_idx + 1]
+            duration_min = next_min - block_start_min
+            remaining_min = max(0, next_min - now_minutes)
+        else:
+            duration_min = 0
+            remaining_min = 0
 
         now_section = {
-            "block": current_block["block"],
-            "do": current_block["file"],          # actual task description
-            "from_ref": current_block["task"],     # source file/reference
-            "duration": current_block["source"],   # time estimate
-            "time_range": time_range,              # e.g., "6:00 - 7:05"
-            "task": current_block["task"],
-            "file": current_block["file"],
-            "source": current_block["source"],
-            "icon": current_block["icon"],
-            "color": current_block["color"],
-            "label": current_block["label"],
-            "details": current_block["details"],
-            "type": current_block["type"],
+            "block": hero_block["block"],
+            "do": hero_block["file"],
+            "from_ref": hero_block["task"],
+            "duration": hero_block["source"],
+            "time_range": time_range,
+            "duration_min": duration_min,
+            "remaining_min": remaining_min,
+            "task": hero_block["task"],
+            "file": hero_block["file"],
+            "source": hero_block["source"],
+            "icon": hero_block["icon"],
+            "color": hero_block["color"],
+            "label": hero_block["label"],
+            "details": hero_block["details"],
+            "type": hero_block["type"],
         }
     elif blocks:
         # All done
@@ -358,6 +413,7 @@ def generate_state() -> dict:
         "calendar": calendar_events,
         "calendar_legend": calendar_legend,
         "calendar_now": calendar_now,
+        "hero_calendar_event": _get_hero_personal_event(calendar_now),
         "weather": weather,
         "meta": {
             "sync_version": 2,

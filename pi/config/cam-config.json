@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "override": false,
+  "night_start_hour": 18,
+  "night_end_hour": 5,
+  "revert_seconds": 75,
+  "panscan": 0.3,
+  "motion_threshold": 8.0
+}
